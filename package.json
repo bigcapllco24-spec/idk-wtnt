@@ -1,0 +1,11 @@
+{
+  "name": "idk-wtnt",
+  "private": true,
+  "description": "idk∗wtnt: music, art, tees and other things from my desk",
+  "scripts": {
+    "dev": "wrangler pages dev public --d1 DB=idk-wtnt-db --r2 MEDIA=idk-wtnt-media --binding ADMIN_PASSWORD=localpass"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

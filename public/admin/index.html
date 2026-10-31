@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Upload · idk∗wtnt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--night:#0D0B09;--desk:#171411;--raise:#1F1B17;--edge:#332D27;--paper:#F1EADF;--dust:#B3A898;--dim:#968B7C;--lamp:#F5A443;--bad:#F08A7A;--good:#9BD3A6;
+  --sans:'Outfit',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--paper);font-family:var(--sans);font-size:16px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 20px 80px}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:32px}
+header h1{margin:0;font-weight:300;font-size:28px;letter-spacing:-.01em}
+header a{color:var(--dust);text-decoration:none;font-size:15px}
+header a:hover{color:var(--lamp)}
+header .sp{flex:1}
+section{background:var(--desk);border:1px solid var(--edge);border-radius:16px;padding:24px;margin-bottom:24px}
+h2{margin:0 0 16px;font-weight:400;font-size:20px}
+label{display:block;font-size:14px;color:var(--dust);margin-bottom:6px}
+input[type=text],input[type=password],textarea{width:100%;background:var(--night);border:1px solid var(--edge);border-radius:10px;padding:11px 12px}
+textarea{min-height:84px;resize:vertical}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:16px}
+.btn{height:44px;padding:0 20px;border-radius:22px;border:1px solid var(--edge);background:transparent;cursor:pointer}
+.btn:hover{background:var(--raise)}
+.btn.primary{background:var(--lamp);border-color:var(--lamp);color:#0D0B09;font-weight:500}
+.btn.primary:disabled{opacity:.5;cursor:default}
+.btn.small{height:36px;padding:0 14px;font-size:14px}
+.btn.danger{color:var(--bad);border-color:#5a2f28}
+.types{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.types button{height:44px;padding:0 18px;border-radius:22px;border:1px solid var(--edge);background:transparent;cursor:pointer;color:var(--dust)}
+.types button[aria-pressed=true]{border-color:var(--lamp);color:var(--lamp);background:rgba(245,164,67,.08)}
+.drop{border:1.5px dashed var(--edge);border-radius:14px;padding:28px;text-align:center;color:var(--dust);cursor:pointer;margin-bottom:16px;transition:border-color .15s,background .15s}
+.drop.over,.drop:hover{border-color:var(--lamp);background:rgba(245,164,67,.05)}
+.drop strong{color:var(--paper);font-weight:500}
+.drop input{display:none}
+.chosen{font-size:14px;color:var(--paper);margin-top:8px}
+.check{display:flex;align-items:center;gap:10px;margin:4px 0 20px;color:var(--paper);font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--lamp)}
+.msg{font-size:14px;margin:12px 0 0;min-height:21px}
+.msg.bad{color:var(--bad)} .msg.good{color:var(--good)}
+.jobs{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.job{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:14px}
+.job .bar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--edge);overflow:hidden}
+.job .bar i{display:block;height:100%;width:0;background:var(--lamp);transition:width .2s}
+.job.done .bar i{background:var(--good)} .job.fail .bar i{background:var(--bad)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.list{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--edge)}
+.item:first-child{border-top:0}
+.thumb{width:56px;height:56px;border-radius:8px;background:var(--raise);object-fit:cover;display:grid;place-items:center;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.item .t{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .meta{font-size:13px;color:var(--dim)}
+.item .meta b{color:var(--dust);font-weight:400}
+.item.hidden .t{color:var(--dim)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.empty{color:var(--dim);font-size:15px;padding:8px 0}
+.note{padding:12px 0;border-top:1px solid var(--edge);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.note:first-child{border-top:0}
+.note p{margin:4px 0 0;color:var(--dust);white-space:pre-wrap}
+#login{max-width:420px;margin:12vh auto 0}
+.hide{display:none !important}
+@media (max-width:560px){.item{grid-template-columns:48px minmax(0,1fr)}.acts{grid-column:1/-1;justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login">
+    <h2>Upload to idk∗wtnt</h2>
+    <form id="loginForm">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <p class="msg" id="loginMsg"></p>
+      <button class="btn primary" type="submit">Log in</button>
+    </form>
+  </section>
+
+  <div id="app" class="hide">
+    <header>
+      <h1>Upload</h1>
+      <span class="sp"></span>
+      <a href="/">View the site</a>
+      <button class="btn small" id="logout">Log out</button>
+    </header>
+
+    <section>
+      <h2>Add something</h2>
+      <div class="types" role="group" aria-label="What are you uploading?">
+        <button type="button" data-type="track" aria-pressed="true">Music</button>
+        <button type="button" data-type="video" aria-pressed="false">Video</button>
+        <button type="button" data-type="photo" aria-pressed="false">Photos</button>
+        <button type="button" data-type="art" aria-pressed="false">Art</button>
+      </div>
+      <form id="up">
+        <label class="drop" id="drop" for="file">
+          <input id="file" type="file" multiple>
+          <span id="dropText"><strong>Choose files</strong> or drop them here</span>
+          <div class="chosen" id="chosen"></div>
+        </label>
+        <div class="row" id="textFields">
+          <div><label for="title">Title</label><input id="title" type="text" placeholder="Uses the file name if left empty"></div>
+          <div id="artistWrap"><label for="artist">Artist</label><input id="artist" type="text" value="idk∗wtnt"></div>
+        </div>
+        <div class="row" id="descWrap">
+          <div><label for="desc">Description (optional)</label><textarea id="desc"></textarea></div>
+        </div>
+        <div class="row" id="coverWrap">
+          <div><label for="cover">Cover image (optional)</label><input id="cover" type="file" accept="image/*"></div>
+        </div>
+        <label class="check"><input id="publish" type="checkbox" checked> Show on the site straight away</label>
+        <button class="btn primary" id="go" type="submit" disabled>Upload</button>
+        <p class="msg" id="upMsg"></p>
+        <div class="jobs" id="jobs"></div>
+      </form>
+    </section>
+
+    <section>
+      <h2>On the site</h2>
+      <div class="filters" id="filters">
+        <button class="btn small" data-f="">All</button><button class="btn small" data-f="track">Music</button>
+        <button class="btn small" data-f="video">Video</button><button class="btn small" data-f="photo">Photos</button>
+        <button class="btn small" data-f="art">Art</button>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section>
+      <h2>Guestbook</h2>
+      <div class="list" id="notes"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const CHUNK = 20 * 1024 * 1024;          // files over this go up in 20 MB pieces
+const ACCEPT = { track: 'audio/*', video: 'video/*', photo: 'image/*', art: 'image/*' };
+const LABEL = { track: 'Music', video: 'Video', photo: 'Photo', art: 'Art' };
+let pw = '';
+try { pw = sessionStorage.getItem('idk-pw') || ''; } catch {}
+let type = 'track', filter = '', items = [];
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { authorization: 'Bearer ' + pw, ...(opts.headers || {}) } });
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok) throw new Error(data.error || `The server answered ${res.status}.`);
+  return data;
+}
+
+/* ---------- log in ---------- */
+async function enter(){
+  try {
+    await api('/api/items?all=1');
+    try { sessionStorage.setItem('idk-pw', pw); } catch {}
+    $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+    loadList(); loadNotes();
+  } catch (e) {
+    $('#loginMsg').textContent = e.message; $('#loginMsg').className = 'msg bad';
+  }
+}
+$('#loginForm').addEventListener('submit', (e) => { e.preventDefault(); pw = $('#pw').value; enter(); });
+$('#logout').addEventListener('click', () => { try { sessionStorage.removeItem('idk-pw'); } catch {} location.reload(); });
+if (pw) enter();
+
+/* ---------- upload form ---------- */
+function setType(t){
+  type = t;
+  document.querySelectorAll('.types button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.type === t)));
+  $('#file').accept = ACCEPT[t];
+  const media = t === 'track' || t === 'video';
+  $('#artistWrap').classList.toggle('hide', !media);
+  $('#coverWrap').classList.toggle('hide', !media);
+  $('#file').multiple = !media;
+  $('#dropText').innerHTML = media ? '<strong>Choose a file</strong> or drop it here' : '<strong>Choose files</strong> or drop them here (several at once is fine)';
+  setFiles([]);
+}
+document.querySelectorAll('.types button').forEach(b => b.addEventListener('click', () => setType(b.dataset.type)));
+
+let files = [];
+function setFiles(list){
+  files = list;
+  $('#chosen').textContent = files.length ? files.map(f => `${f.name} (${(f.size/1048576).toFixed(1)} MB)`).join(', ') : '';
+  $('#go').disabled = !files.length;
+  $('#title').disabled = files.length > 1;
+  $('#title').placeholder = files.length > 1 ? 'Each file uses its own name' : 'Uses the file name if left empty';
+}
+$('#file').addEventListener('change', (e) => setFiles([...e.target.files]));
+const drop = $('#drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => { const f = [...e.dataTransfer.files]; setFiles($('#file').multiple ? f : f.slice(0,1)); });
+
+function put(url, body, contentType, onProgress){
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', url);
+    x.setRequestHeader('authorization', 'Bearer ' + pw);
+    x.setRequestHeader('content-type', contentType || 'application/octet-stream');
+    x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded);
+    x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch {} x.status < 300 ? resolve(d) : reject(new Error(d.error || `Upload failed (${x.status}).`)); };
+    x.onerror = () => reject(new Error('The connection dropped. Try again.'));
+    x.send(body);
+  });
+}
+
+async function sendFile(file, t, role, onProgress){
+  const ct = file.type || 'application/octet-stream';
+  if (file.size <= CHUNK) {
+    const q = new URLSearchParams({ type: t, name: file.name, role });
+    return (await put('/api/files?' + q, file, ct, onProgress)).key;
+  }
+  const { key, uploadId } = await api('/api/files/multipart', { method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({ action:'start', type:t, name:file.name, contentType:ct }) });
+  const parts = [];
+  try {
+    for (let i = 0, n = 1; i < file.size; i += CHUNK, n++) {
+      const q = new URLSearchParams({ key, uploadId, part: n });
+      const done = await put('/api/files/multipart?' + q, file.slice(i, i + CHUNK), 'application/octet-stream', (l) => onProgress(i + l));
+      parts.push(done);
+    }
+    await api('/api/files/multipart', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action:'complete', key, uploadId, parts }) });
+    return key;
+  } catch (e) {
+    api('/api/files/multipart', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ action:'abort', key, uploadId }) }).catch(()=>{});
+    throw e;
+  }
+}
+
+function job(name){
+  const el = document.createElement('div'); el.className = 'job';
+  el.innerHTML = '<span class="n"></span><span class="s">Waiting</span><span class="bar"><i></i></span>';
+  el.querySelector('.n').textContent = name;
+  $('#jobs').prepend(el);
+  return {
+    progress: (p) => { el.querySelector('i').style.width = Math.round(p*100) + '%'; el.querySelector('.s').textContent = Math.round(p*100) + '%'; },
+    done: (txt) => { el.classList.add('done'); el.querySelector('i').style.width = '100%'; el.querySelector('.s').textContent = txt; },
+    fail: (txt) => { el.classList.add('fail'); el.querySelector('.s').textContent = txt; },
+  };
+}
+
+$('#up').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const batch = files.slice(), t = type;
+  const meta = { title: $('#title').value, artist: $('#artist').value, description: $('#desc').value, published: $('#publish').checked };
+  const cover = (t === 'track' || t === 'video') ? $('#cover').files[0] : null;
+  $('#go').disabled = true; $('#upMsg').textContent = '';
+  let ok = 0;
+  for (const f of batch) {
+    const j = job(f.name);
+    try {
+      const total = f.size + (cover ? cover.size : 0);
+      let coverKey = null, coverSent = 0;
+      if (cover) coverKey = await sendFile(cover, t, 'cover', (l) => { coverSent = l; j.progress(l/total*.98); });
+      const fileKey = await sendFile(f, t, 'file', (l) => j.progress((coverSent + l)/total*.98));
+      await api('/api/items', { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ type:t, fileKey, coverKey, title: batch.length > 1 ? '' : meta.title, artist: meta.artist, description: meta.description, published: meta.published }) });
+      j.done(meta.published ? 'Live on the site' : 'Saved, hidden'); ok++;
+    } catch (err) { j.fail(err.message); }
+  }
+  $('#upMsg').textContent = ok === batch.length ? `Uploaded ${ok} ${ok === 1 ? 'file' : 'files'}.` : `${ok} of ${batch.length} uploaded. The failed ones say why above.`;
+  $('#upMsg').className = 'msg ' + (ok === batch.length ? 'good' : 'bad');
+  $('#up').reset(); $('#artist').value = 'idk∗wtnt'; setFiles([]);
+  loadList();
+});
+
+/* ---------- library ---------- */
+async function loadList(){
+  try { items = (await api('/api/items?all=1')).items; } catch (e) { $('#list').innerHTML = `<p class="empty">${e.message}</p>`; return; }
+  renderList();
+}
+function renderList(){
+  const shown = items.filter(i => !filter || i.type === filter);
+  document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('primary', b.dataset.f === filter));
+  const list = $('#list'); list.innerHTML = '';
+  if (!shown.length) { list.innerHTML = '<p class="empty">Nothing here yet. Upload something above.</p>'; return; }
+  for (const it of shown) {
+    const row = document.createElement('div'); row.className = 'item' + (it.published ? '' : ' hidden');
+    const pic = it.cover || (it.type === 'photo' || it.type === 'art' ? it.url : null);
+    row.innerHTML = `${pic ? '<img class="thumb" alt="">' : `<span class="thumb">${LABEL[it.type] || it.type}</span>`}
+      <div style="min-width:0"><div class="t"></div><div class="meta"><b>${LABEL[it.type] || it.type}</b> · ${it.views} views · ${it.likes} likes · ${new Date(it.createdAt).toLocaleDateString()}${it.published ? '' : ' · hidden'}</div></div>
+      <div class="acts"><button class="btn small" data-a="toggle">${it.published ? 'Hide' : 'Show'}</button><button class="btn small" data-a="rename">Rename</button><button class="btn small danger" data-a="delete">Delete</button></div>`;
+    if (pic) row.querySelector('img').src = pic;
+    row.querySelector('.t').textContent = it.title;
+    row.querySelector('[data-a=toggle]').onclick = () => patch(it, { published: !it.published });
+    row.querySelector('[data-a=rename]').onclick = () => { const t = prompt('New title', it.title); if (t && t.trim()) patch(it, { title: t.trim() }); };
+    const del = row.querySelector('[data-a=delete]');
+    del.onclick = async () => {
+      if (del.dataset.armed) { del.disabled = true; try { await api('/api/items/' + it.id, { method:'DELETE' }); loadList(); } catch (e) { alert(e.message); } }
+      else { del.dataset.armed = '1'; del.textContent = 'Click again to delete'; setTimeout(() => { delete del.dataset.armed; del.textContent = 'Delete'; }, 4000); }
+    };
+    list.appendChild(row);
+  }
+}
+async function patch(it, body){
+  try { await api('/api/items/' + it.id, { method:'PATCH', headers:{'content-type':'application/json'}, body: JSON.stringify(body) }); loadList(); }
+  catch (e) { alert(e.message); }
+}
+document.querySelectorAll('#filters button').forEach(b => b.addEventListener('click', () => { filter = b.dataset.f; renderList(); }));
+
+/* ---------- guestbook ---------- */
+async function loadNotes(){
+  const box = $('#notes');
+  try {
+    const { notes } = await api('/api/notes');
+    box.innerHTML = notes.length ? '' : '<p class="empty">No notes yet.</p>';
+    for (const n of notes) {
+      const el = document.createElement('div'); el.className = 'note';
+      el.innerHTML = '<div><b></b> <span class="meta" style="color:var(--dim);font-size:13px"></span><p></p></div><button class="btn small danger">Delete</button>';
+      el.querySelector('b').textContent = n.name;
+      el.querySelector('.meta').textContent = new Date(n.createdAt).toLocaleString();
+      el.querySelector('p').textContent = n.body;
+      el.querySelector('button').onclick = async () => { try { await api('/api/notes/' + n.id, { method:'DELETE' }); loadNotes(); } catch (e) { alert(e.message); } };
+      box.appendChild(el);
+    }
+  } catch (e) { box.innerHTML = `<p class="empty">${e.message}</p>`; }
+}
+setType('track');
+</script>
+</body>
+</html>

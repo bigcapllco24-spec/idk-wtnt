@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>idk∗wtnt</title>
+<meta name="description" content="Music, art, tees and other things from my desk.">
+<meta name="theme-color" content="#0D0B09">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/desk-2400.jpg" imagesrcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" imagesizes="max(100vw, 133vh)">
+<style>
+:root{
+  --night:#0D0B09; --desk:#171411; --edge:#332D27; --paper:#F1EADF; --dust:#B3A898; --dim:#968B7C;
+  --lamp:#F5A443; --screen:#6FD3E8;
+  --sans:'Outfit',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --px:0px; --py:0px; --s:1; --ox:50%; --oy:50%;
+  --cam:900ms cubic-bezier(.65,0,.25,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:var(--paper);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lamp);outline-offset:3px}
+
+/* ---------- stage + scene ---------- */
+.stage{position:fixed;inset:0;overflow:hidden;background:#000}
+.scene{
+  position:absolute;left:50%;top:50%;
+  width:max(100vw,133.334vh);height:max(75vw,100vh);
+  transform:translate(-50%,-50%) translate(var(--px),var(--py)) scale(var(--s));
+  transform-origin:var(--ox) var(--oy);
+  transition:transform var(--cam);
+  container-type:size;
+}
+.scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
+.photo{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;
+  transition:filter .6s ease}
+body.lights-off .photo{filter:brightness(.15) saturate(.55) contrast(1.05)}
+body.intro .photo{filter:brightness(.06) saturate(.5)}
+body.lamp-on .photo{animation:lampOn 1.5s steps(1,end) both}
+@keyframes lampOn{
+  0%{filter:brightness(.06) saturate(.5)} 12%{filter:brightness(.7)} 17%{filter:brightness(.1) saturate(.5)}
+  27%{filter:brightness(.95)} 31%{filter:brightness(.35)} 40%,100%{filter:none}
+}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:24;
+  background:radial-gradient(ellipse 80% 75% at 50% 48%,transparent 55%,rgba(0,0,0,.55) 100%)}
+.fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:23;transition:opacity 500ms ease}
+body.in-room .fade{opacity:.55;transition-delay:450ms}
+.scene{transition:transform var(--cam), filter .6s ease}
+body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--cam), filter .6s ease 500ms}
+
+/* ---------- screens (perspective-mapped) ---------- */
+.screen{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;pointer-events:none;
+  transition:filter .3s ease}
+.screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.07),rgba(255,255,255,0) 38%),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+.screen.hot{filter:brightness(1.18) drop-shadow(0 0 40px rgba(111,211,232,.45))}
+#monitor{width:1280px;height:720px;background:radial-gradient(ellipse 70% 80% at 58% 42%,#17323A 0%,#0A1418 45%,#050708 80%)}
+#monitor .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px}
+#monitor .reel{font-family:var(--mono);font-size:22px;letter-spacing:.2em;color:var(--screen)}
+#monitor .mark{font-weight:200;font-size:170px;letter-spacing:-.03em;color:#E9F7FA;line-height:1}
+.star{display:inline-block;width:.74em;height:.74em;vertical-align:-.03em;margin:0 .03em;fill:currentColor}
+#monitor .play{width:120px;height:120px;border-radius:50%;border:3px solid rgba(233,247,250,.9);display:grid;place-items:center}
+#monitor .play svg{width:44px;height:44px;fill:#E9F7FA;margin-left:8px}
+#monitor .title{font-size:30px;color:#B9D7DE;letter-spacing:.01em}
+#monitor .bar{position:absolute;left:60px;right:60px;bottom:48px;height:5px;border-radius:3px;background:rgba(255,255,255,.15)}
+#monitor .bar span{display:block;width:37%;height:100%;border-radius:3px;background:var(--screen)}
+#laptop{width:1440px;height:900px;background:#0C0B0A;padding:70px 80px;display:flex;flex-direction:column;gap:46px}
+#laptop header{display:flex;justify-content:space-between;align-items:baseline}
+#laptop h3{margin:0;font-weight:300;font-size:64px;letter-spacing:-.01em;color:var(--paper)}
+#laptop header span{font-size:30px;color:var(--lamp)}
+#laptop .tiles{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+#laptop figure{margin:0;display:flex;flex-direction:column;gap:18px}
+#laptop img{width:100%;flex:1;min-height:0;object-fit:cover;border-radius:12px}
+#laptop figcaption{font-size:28px;color:var(--dust)}
+.spill{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:.25;transition:opacity .6s ease;border-radius:50%}
+body.lights-off .spill{opacity:.9}
+.spill.mon{left:-8%;top:2%;width:58%;height:58%;background:radial-gradient(closest-side,rgba(80,170,200,.32),rgba(80,170,200,0))}
+.spill.lap{left:40%;top:28%;width:26%;height:32%;background:radial-gradient(closest-side,rgba(120,150,190,.25),rgba(120,150,190,0))}
+
+/* ---------- wall wordmark ---------- */
+.wall{position:absolute;left:50.5%;top:max(9.5%, calc(50% - 50vh + 96px));pointer-events:none;display:flex;flex-direction:column;gap:1.1cqw;
+  transition:opacity .8s ease, transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.wall .mark{font-weight:300;font-size:8.6cqw;line-height:.9;letter-spacing:-.03em;color:rgba(212,207,200,.62);text-shadow:0 .1cqw .6cqw rgba(0,0,0,.08)}
+.wall p{margin:0 0 0 .35cqw;font-size:1.05cqw;font-weight:300;color:#E9DFD0;letter-spacing:.01em;max-width:30ch}
+body.intro .wall{opacity:0;transform:translateY(.8cqw)}
+body.lights-off .wall{opacity:.35}
+
+/* ---------- hotspots ---------- */
+.hs{position:absolute;border:0;padding:0;background:transparent;cursor:pointer;border-radius:1.1cqw;
+  transition:box-shadow .25s ease, background-color .25s ease;-webkit-tap-highlight-color:transparent}
+.hs:hover,.hs:focus-visible{background:rgba(245,164,67,.06);
+  box-shadow:0 0 0 1.5px rgba(245,164,67,.85),0 0 60px rgba(245,164,67,.25);outline:none}
+.hs.quad:hover,.hs.quad:focus-visible{background:transparent;box-shadow:none}
+.dot{position:absolute;left:var(--dx,50%);top:var(--dy,50%);width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  border:1.5px solid rgba(245,164,67,.75);display:grid;place-items:center;pointer-events:none;
+  transition:opacity .4s ease, transform .3s ease}
+.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lamp);box-shadow:0 0 12px rgba(245,164,67,.8)}
+.hs:hover .dot,.hs:focus-visible .dot{transform:scale(1.15)}
+.tag{position:absolute;left:var(--dx,50%);top:var(--dy,50%);transform:translate(-12px,22px);white-space:nowrap;pointer-events:none;
+  display:flex;flex-direction:column;gap:2px;padding:8px 14px 9px;border-radius:12px;text-align:left;
+  background:rgba(13,11,9,.84);border:1px solid rgba(245,164,67,.4);backdrop-filter:blur(8px);
+  opacity:0;translate:0 4px;transition:opacity .2s ease, translate .2s ease}
+.tag b{font-weight:500;font-size:16px;color:var(--paper)}
+.tag small{font-size:12px;color:var(--dust)}
+.hs:hover .tag,.hs:focus-visible .tag{opacity:1;translate:0 0}
+.tag.up{transform:translate(-12px,calc(-100% - 22px))}
+body.intro .dot{opacity:0}
+body.in-room .hs{pointer-events:none}
+body.in-room .dot,body.in-room .tag{opacity:0 !important}
+.edge{position:absolute;right:1.2%;top:24%;height:22%;width:3.4%;min-width:48px;border-radius:999px;border:1px solid rgba(245,164,67,.55);
+  background:rgba(13,11,9,.7);color:var(--lamp);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;
+  backdrop-filter:blur(6px);transition:background .2s ease}
+.edge:hover{background:rgba(40,30,20,.85)}
+.edge span{writing-mode:vertical-rl;font-size:14px;letter-spacing:.06em;color:var(--paper)}
+
+/* ---------- top bar ---------- */
+.top{position:fixed;left:0;right:0;top:0;z-index:34;display:flex;align-items:center;gap:8px 20px;flex-wrap:wrap;
+  padding:max(14px, env(safe-area-inset-top)) clamp(14px,2vw,28px) 14px;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0));transition:opacity .6s ease}
+.brand{font-weight:300;font-size:26px;letter-spacing:-.02em;white-space:nowrap;display:none;color:rgba(222,217,210,.8)}
+.top .note{font-size:14px;color:var(--dust)}
+.top nav{margin-left:auto;display:flex;flex-wrap:wrap;gap:2px}
+.top nav button{border:0;background:transparent;padding:12px 10px;font-size:15px;color:var(--paper);cursor:pointer;border-radius:8px}
+.top nav button:hover{color:var(--lamp)}
+.switch{height:44px;padding:0 16px 0 12px;border-radius:22px;border:1px solid var(--edge);background:rgba(13,11,9,.6);
+  display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--lamp);font-size:14px}
+.switch svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+body.intro .top{opacity:0}
+
+/* ---------- room placeholder ---------- */
+.room{position:fixed;inset:0;z-index:31;overflow-y:auto;padding:96px clamp(16px,4vw,48px) 150px;pointer-events:none;opacity:0;transition:opacity .4s ease;overscroll-behavior:contain}
+body.in-room .room{opacity:1;pointer-events:auto;transition-delay:700ms}
+.room .card{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+.room h2{margin:8px 0 0;font-weight:200;font-size:clamp(52px,8vw,108px);line-height:.95;letter-spacing:-.03em}
+.room p{margin:0;font-size:18px;line-height:28px;color:var(--dust);max-width:52ch}
+.room-body{width:100%;margin-top:8px}
+.empty{color:var(--dim);font-size:16px;padding:24px 0}
+/* tracklist */
+.tl{width:100%;display:flex;flex-direction:column}
+.tl button{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:16px;width:100%;padding:10px 12px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer}
+.tl button:hover,.tl button.now{background:rgba(245,164,67,.08)}
+.tl img{width:52px;height:52px;border-radius:6px;object-fit:cover}
+.tl b{display:block;font-weight:400;font-size:18px}
+.tl small{color:var(--dust);font-size:14px}
+.tl .n{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:right;white-space:nowrap}
+.tl button.now b{color:var(--lamp)}
+/* photo + art grid */
+.grid{width:100%;columns:3 260px;column-gap:16px}
+.grid button{display:block;width:100%;margin:0 0 16px;padding:0;border:0;background:none;cursor:zoom-in;break-inside:avoid;border-radius:6px;overflow:hidden}
+.grid img{display:block;width:100%;height:auto;transition:transform .4s ease}
+.grid button:hover img{transform:scale(1.025)}
+.lightbox{position:fixed;inset:0;z-index:50;background:rgba(5,4,3,.94);display:none;align-items:center;justify-content:center;padding:56px 72px}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.lightbox .cap{position:absolute;left:0;right:0;bottom:20px;text-align:center;color:var(--dust);font-size:15px}
+.lb-btn{position:absolute;width:48px;height:48px;border-radius:50%;border:1px solid var(--edge);background:rgba(13,11,9,.7);color:var(--paper);display:grid;place-items:center;cursor:pointer}
+.lb-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lb-close{top:16px;right:16px}.lb-prev{left:12px;top:50%;margin-top:-24px}.lb-next{right:12px;top:50%;margin-top:-24px}
+/* video */
+.vid{width:100%;display:grid;grid-template-columns:minmax(0,2.2fr) minmax(240px,1fr);gap:24px;align-items:start}
+.vid video{width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.vid h3{margin:16px 0 4px;font-weight:300;font-size:30px}
+.vid .stats{color:var(--dust);font-size:15px}
+.vid .desc{margin-top:10px;color:var(--dust);font-size:16px;line-height:26px;white-space:pre-wrap}
+.vlist{display:flex;flex-direction:column;gap:8px}
+.vlist button{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:center;padding:8px;border:1px solid transparent;border-radius:12px;background:transparent;text-align:left;cursor:pointer}
+.vlist button:hover{background:rgba(255,255,255,.04)}
+.vlist button.now{border-color:var(--lamp)}
+.vlist .th{aspect-ratio:16/9;border-radius:6px;background:#111 center/cover no-repeat}
+.vlist b{font-weight:400;display:block}.vlist small{color:var(--dim)}
+@media (max-width:760px){.vid{grid-template-columns:1fr}}
+/* guestbook */
+.gb{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:32px;align-items:start}
+.gb form{background:#F1ECE3;color:#2A241E;border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:10px;
+  background-image:repeating-linear-gradient(transparent 0,transparent 31px,#C9D3DE 31px,#C9D3DE 32px)}
+.gb label{font-size:14px;color:#5E554A}
+.gb input,.gb textarea{border:1px solid #B9AE9C;border-radius:6px;background:rgba(255,255,255,.7);padding:10px;color:#2A241E;font-size:16px}
+.gb textarea{min-height:110px;resize:vertical}
+.gb form button{height:44px;border:0;border-radius:22px;background:#2A241E;color:#F1ECE3;font-size:15px;cursor:pointer}
+.gb .status{font-size:14px;min-height:20px;color:#5E554A}
+.notes{display:flex;flex-direction:column;gap:14px}
+.notes article{border-left:2px solid var(--edge);padding:2px 0 2px 14px}
+.notes b{font-weight:500}.notes time{color:var(--dim);font-size:13px;margin-left:8px}
+.notes p{margin:4px 0 0;font-size:16px;color:var(--dust);white-space:pre-wrap}
+@media (max-width:760px){.gb{grid-template-columns:1fr}}
+.back{height:48px;padding:0 22px 0 16px;border-radius:24px;border:1px solid var(--lamp);background:transparent;color:var(--paper);
+  display:inline-flex;align-items:center;gap:10px;font-size:16px;cursor:pointer}
+.back:hover{background:rgba(245,164,67,.12)}
+.back svg{width:18px;height:18px;fill:none;stroke:var(--lamp);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- player ---------- */
+.player{position:fixed;left:0;right:0;bottom:0;z-index:32;display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;
+  padding:12px clamp(14px,2vw,28px) calc(12px + env(safe-area-inset-bottom));
+  background:rgba(13,11,9,.86);border-top:1px solid var(--edge);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+body.intro .player{transform:translateY(110%)}
+.np{display:flex;align-items:center;gap:12px;min-width:0;flex:0 1 250px}
+.np img{width:48px;height:48px;border-radius:6px;object-fit:cover;flex:none}
+.np div{display:flex;flex-direction:column;min-width:0}
+.np b{font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np small{font-size:13px;color:var(--dust)}
+.ctrl{display:flex;align-items:center;gap:4px}
+.ib{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--dust);display:grid;place-items:center;cursor:pointer}
+.ib:hover{background:#221D18;color:var(--paper)}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ib.liked{color:var(--lamp)} .ib.liked svg{fill:var(--lamp)}
+.pp{width:48px;height:48px;border-radius:50%;border:0;background:var(--lamp);display:grid;place-items:center;cursor:pointer}
+.pp svg{width:18px;height:18px;fill:#0D0B09}
+.pp .i-pause{display:none} .playing .pp .i-pause{display:block} .playing .pp .i-play{display:none}
+.seek{flex:1 1 320px;display:flex;align-items:center;gap:12px;min-width:220px}
+.seek time{font-family:var(--mono);font-size:12px;color:var(--dust);font-variant-numeric:tabular-nums;min-width:38px}
+.seek canvas{flex:1;height:34px;min-width:0;cursor:pointer;touch-action:none}
+.vol{display:flex;align-items:center;gap:6px}
+.vol input{width:90px;accent-color:var(--lamp)}
+.hint{position:fixed;left:50%;top:60%;translate:-50% 0;z-index:21;display:none;padding:10px 16px;border-radius:999px;
+  background:rgba(13,11,9,.78);font-size:14px;color:var(--paper);pointer-events:none;transition:opacity .5s ease}
+
+/* ---------- phones / portrait: drag to look around ---------- */
+@media (max-aspect-ratio: 1/1){
+  .stage{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .stage::-webkit-scrollbar{display:none}
+  .scene{left:0;top:0;height:100%;width:calc(100dvh * 4 / 3);
+    transform:translate(var(--px),var(--py)) scale(var(--s))}
+  .brand{display:block}
+  .top .note,.top nav{display:none}
+  .switch{margin-left:auto}
+  .hint{display:block}
+  .wall .mark{font-size:6cqw}
+  .player{gap:10px 12px}
+  .np{flex:1 1 160px}
+  .vol,.ctrl .ib.prev{display:none}
+  .seek{order:3;flex-basis:100%}
+}
+@media (hover:none){
+  .tag{opacity:1;translate:0 0;padding:5px 10px 6px}
+  .tag small{display:none}
+  .tag b{font-size:13px}
+}
+@media (prefers-reduced-motion: reduce){
+  :root{--cam:1ms linear}
+  body.lamp-on .photo{animation:none}
+  .scene.drift{transition:none}
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body class="intro">
+
+<header class="top">
+  <span class="brand" aria-hidden="true">idk<svg class="star" viewBox="-50 -50 100 100" aria-hidden="true"><path d="M0 -50 L2.9 -6.9 L28.3 -28.3 L6.9 -2.9 L50 0 L6.9 2.9 L28.3 28.3 L2.9 6.9 L0 50 L-2.9 6.9 L-28.3 28.3 L-6.9 2.9 L-50 0 L-6.9 -2.9 L-28.3 -28.3 L-2.9 -6.9Z"/></svg>wtnt</span>
+  <span class="note">Built at night</span>
+  <nav aria-label="Rooms">
+    <button data-go="video">Video</button><button data-go="sound">Sound</button><button data-go="art">Art</button>
+    <button data-go="photos">Photos</button><button data-go="tees">Tees</button><button data-go="misc">Misc</button>
+    <button data-go="archive">Archive</button><button data-go="about">About</button>
+  </nav>
+  <button class="switch" id="lampSwitch" aria-pressed="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l3 7H6z"/><path d="M12 10v8M8 21h8"/></svg>
+    <span id="lampLabel">Lights off</span>
+  </button>
+</header>
+
+<main class="stage" id="stage">
+  <h1 class="sr">idk∗wtnt: music, art, tees and other things from my desk</h1>
+  <div class="scene" id="scene">
+    <img class="photo" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="max(100vw, 133vh)"
+         alt="My desk at night: a monitor and laptop, a yellow lamp, AKAI keys, an acoustic guitar, figures and stickers" draggable="false">
+
+    <div class="spill mon" aria-hidden="true"></div>
+    <div class="spill lap" aria-hidden="true"></div>
+
+    <div class="screen" id="monitor" aria-hidden="true">
+      <div class="inner">
+        <span class="reel">SHOWREEL 2026</span>
+        <span class="mark">idk<svg class="star" viewBox="-50 -50 100 100" aria-hidden="true"><path d="M0 -50 L2.9 -6.9 L28.3 -28.3 L6.9 -2.9 L50 0 L6.9 2.9 L28.3 28.3 L2.9 6.9 L0 50 L-2.9 6.9 L-28.3 28.3 L-6.9 2.9 L-50 0 L-6.9 -2.9 L-28.3 -28.3 L-2.9 -6.9Z"/></svg>wtnt</span>
+        <span class="play"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span>
+        <span class="title">Midnight Drive, official video</span>
+      </div>
+      <div class="bar"><span></span></div>
+    </div>
+
+    <div class="screen" id="laptop" aria-hidden="true">
+      <header><h3>Recent uploads</h3><span>View all</span></header>
+      <div class="tiles">
+        <figure><img src="img/mech.jpg" alt=""><figcaption>LEGO mech</figcaption></figure>
+        <figure><img src="img/pour.jpg" alt=""><figcaption>numb.world</figcaption></figure>
+        <figure><img src="img/crane.jpg" alt=""><figcaption>Paper crane</figcaption></figure>
+        <figure><img src="img/astro.jpg" alt=""><figcaption>Astronaut</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="wall" aria-hidden="true">
+      <span class="mark">idk<svg class="star" viewBox="-50 -50 100 100" aria-hidden="true"><path d="M0 -50 L2.9 -6.9 L28.3 -28.3 L6.9 -2.9 L50 0 L6.9 2.9 L28.3 28.3 L2.9 6.9 L0 50 L-2.9 6.9 L-28.3 28.3 L-6.9 2.9 L-50 0 L-6.9 -2.9 L-28.3 -28.3 L-2.9 -6.9Z"/></svg>wtnt</span>
+      <p>Music, art, tees and other things from my desk.</p>
+    </div>
+
+    <!-- Hotspots. Positions are % of the photo, so they stay glued to the objects at any size. -->
+    <button class="hs quad" data-go="video" data-screen="monitor" style="inset:0;clip-path:polygon(0.3% 13.8%,41.8% 11.07%,41.8% 36.27%,6.1% 44.8%);--dx:24%;--dy:25%" aria-label="Monitor: open Video">
+      <span class="dot"></span><span class="tag"><b>Video</b><small>the monitor</small></span></button>
+    <button class="hs" data-go="photos" style="left:18%;top:6.4%;width:6.6%;height:5.2%" aria-label="Webcam: open Photos">
+      <span class="dot"></span><span class="tag"><b>Photos</b><small>the webcam</small></span></button>
+    <button class="hs" data-go="archive" data-screen="laptop" style="left:44.2%;top:34.2%;width:17.8%;height:16%" aria-label="Laptop: open the Archive">
+      <span class="dot"></span><span class="tag"><b>Archive</b><small>everything, newest first</small></span></button>
+    <button class="hs" data-go="sound" style="left:1%;top:47%;width:15%;height:52%;--dy:62%" aria-label="Guitar: open Sound">
+      <span class="dot"></span><span class="tag up"><b>Sound</b><small>the guitar</small></span></button>
+    <button class="hs" data-go="sound" style="left:36.6%;top:73.2%;width:26%;height:16.3%" aria-label="AKAI keys: open Sound">
+      <span class="dot"></span><span class="tag up"><b>Sound</b><small>the keys</small></span></button>
+    <button class="hs" data-go="about" style="left:20.8%;top:70.5%;width:15.6%;height:18%;--dy:42%" aria-label="Notebook: open About and the guestbook">
+      <span class="dot"></span><span class="tag up"><b>About</b><small>the notebook, sign the guestbook</small></span></button>
+    <button class="hs" data-go="misc" style="left:25%;top:45%;width:19%;height:20%;--dx:42%;--dy:48%" aria-label="Figures and toys: open Misc">
+      <span class="dot"></span><span class="tag"><b>Misc</b><small>figures and toys</small></span></button>
+    <button class="hs" data-go="art" style="left:63%;top:51.5%;width:12%;height:12%;--dy:58%" aria-label="Papers and stickers: open Art">
+      <span class="dot"></span><span class="tag"><b>Art</b><small>papers and stickers</small></span></button>
+    <button class="hs" data-go="misc" style="left:76.4%;top:45.3%;width:4.6%;height:8.5%" aria-label="Astronaut: open Misc">
+      <span class="dot"></span><span class="tag"><b>Misc</b><small>the astronaut</small></span></button>
+    <button class="hs" data-act="lamp" style="left:61.8%;top:30.4%;width:13.4%;height:20%;--dx:58%;--dy:30%" aria-label="Lamp: switch the lights">
+      <span class="dot"></span><span class="tag"><b id="lampTag">Lights off</b><small>the lamp</small></span></button>
+    <button class="hs" data-act="play" style="left:89.2%;top:49.8%;width:5.6%;height:9.6%;--dx:50%;--dy:50%" aria-label="Speaker: play or pause">
+      <span class="dot"></span><span class="tag" style="transform:translate(-85%,22px)"><b>Play / pause</b><small>the speaker</small></span></button>
+    <button class="edge" data-go="tees" aria-label="Turn right to the wardrobe: Tees">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round"><path d="M8 4L3 7l2 4 3-1.5V20h8V9.5l3 1.5 2-4-5-3c-.5 1.5-2 2.5-4 2.5S8.5 5.5 8 4z"/></svg>
+      <span>Wardrobe</span>
+    </button>
+  </div>
+</main>
+
+<div class="hint" id="hint" aria-hidden="true">Drag to look around</div>
+<div class="fade" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<section class="room" id="room" aria-live="polite" aria-hidden="true">
+  <div class="card">
+    <button class="back" id="backBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to desk</button>
+    <h2 id="roomTitle">Video</h2>
+    <p id="roomText"></p>
+    <div class="room-body" id="roomBody"></div>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <img id="lbImg" alt="">
+  <div class="cap" id="lbCap"></div>
+  <button class="lb-btn lb-close" id="lbClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <button class="lb-btn lb-prev" id="lbPrev" aria-label="Previous photo"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <button class="lb-btn lb-next" id="lbNext" aria-label="Next photo"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+
+<footer class="player" id="player" aria-label="Music player">
+  <audio id="audio" preload="metadata"></audio>
+  <div class="np"><img id="cover" src="img/pour.jpg" alt=""><div><b id="trackTitle">numb.world</b><small id="trackArtist">idk∗wtnt</small></div></div>
+  <div class="ctrl">
+    <button class="ib prev" id="prevBtn" aria-label="Previous track"><svg viewBox="0 0 24 24"><path d="M18 6v12l-9-6z"/><path d="M6 6v12"/></svg></button>
+    <button class="pp" id="playBtn" aria-label="Play">
+      <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5l13 7.5-13 7.5z"/></svg>
+      <svg class="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    </button>
+    <button class="ib" id="nextBtn" aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M6 6v12l9-6z"/><path d="M18 6v12"/></svg></button>
+  </div>
+  <div class="seek">
+    <time id="cur">0:00</time>
+    <canvas id="wave" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></canvas>
+    <time id="dur">0:00</time>
+  </div>
+  <div class="ctrl">
+    <button class="ib" id="likeBtn" aria-label="Like" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></button>
+    <label class="vol"><span class="sr">Volume</span>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="fill:none;stroke:var(--dust);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>
+      <input id="vol" type="range" min="0" max="1" step="0.01" value="0.8">
+    </label>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   TRACKS: add your songs here. `src` is a path or URL to an
+   mp3/m4a/wav. With an empty src the player runs silently
+   (progress only) so the design can be previewed.
+   ========================================================= */
+let TRACKS = [
+  { title: 'numb.world',   artist: 'idk∗wtnt', cover: 'img/pour.jpg',  src: '', length: 165 },
+  { title: 'Citylights',   artist: 'idk∗wtnt', cover: 'img/astro.jpg', src: '', length: 142 },
+  { title: 'Lost Signals', artist: 'idk∗wtnt', cover: 'img/crane.jpg', src: '', length: 188 },
+];
+
+const ROOMS = {
+  video:   ['Video',   'Music videos, visualisers and studio sessions, played on the monitor.'],
+  sound:   ['Sound',   'Every release, with the full player and the pads from the keys.'],
+  art:     ['Art',     'Paintings, sketches and zines, laid out on the desk from above.'],
+  photos:  ['Photos',  'Rolls and contact sheets, seen through the webcam.'],
+  tees:    ['Tees',    'The clothes rack, with every tee 3D scanned so you can turn it around.'],
+  misc:    ['Misc',    'The figures, toys and odd things on the desk, and where they came from.'],
+  archive: ['Archive', 'Everything on the site in one list, newest first.'],
+  about:   ['About',   'Who makes all this. Leave a note in the notebook on your way out.'],
+};
+// Where the camera flies to for each room (% of the photo) and how far it zooms.
+const CAM = {
+  video:{x:22,y:27,s:2.4}, photos:{x:21,y:9,s:3.2}, archive:{x:53,y:42,s:3}, sound:{x:49,y:81,s:2.6},
+  about:{x:28,y:79,s:3}, misc:{x:34,y:55,s:3}, art:{x:69,y:57,s:3.2}, tees:{x:99,y:45,s:1.6},
+};
+
+const $ = (s) => document.querySelector(s);
+const body = document.body, scene = $('#scene'), stage = $('#stage');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const portrait = () => matchMedia('(max-aspect-ratio: 1/1)').matches;
+
+/* ---------- map the two screens onto the photo in true perspective ---------- */
+const QUADS = { // TL, TR, BL, BR in % of the photo
+  monitor: [[0.3,13.8],[41.8,11.07],[6.1,44.8],[41.8,36.27]],
+  laptop:  [[44.4,34.87],[61.85,34.8],[44.65,49.73],[61.8,49.67]],
+};
+function adj(m){return[m[4]*m[8]-m[5]*m[7],m[2]*m[7]-m[1]*m[8],m[1]*m[5]-m[2]*m[4],m[5]*m[6]-m[3]*m[8],m[0]*m[8]-m[2]*m[6],m[2]*m[3]-m[0]*m[5],m[3]*m[7]-m[4]*m[6],m[1]*m[6]-m[0]*m[7],m[0]*m[4]-m[1]*m[3]]}
+function mm(a,b){const c=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){let s=0;for(let k=0;k<3;k++)s+=a[3*i+k]*b[3*k+j];c[3*i+j]=s}return c}
+function mv(m,v){return[m[0]*v[0]+m[1]*v[1]+m[2]*v[2],m[3]*v[0]+m[4]*v[1]+m[5]*v[2],m[6]*v[0]+m[7]*v[1]+m[8]*v[2]]}
+function basis(p){const m=[p[0],p[2],p[4],p[1],p[3],p[5],1,1,1];const v=mv(adj(m),[p[6],p[7],1]);return mm(m,[v[0],0,0,0,v[1],0,0,0,v[2]])}
+function mapQuad(el, q){
+  const W = scene.offsetWidth, H = scene.offsetHeight, w = el.offsetWidth, h = el.offsetHeight;
+  const d = q.flatMap(([x,y]) => [x/100*W, y/100*H]);
+  let t = mm(basis(d), adj(basis([0,0,w,0,0,h,w,h])));
+  t = t.map(v => v / t[8]);
+  el.style.transform = `matrix3d(${t[0]},${t[3]},0,${t[6]},${t[1]},${t[4]},0,${t[7]},0,0,1,0,${t[2]},${t[5]},0,${t[8]})`;
+}
+function layout(){ for (const id in QUADS) mapQuad(document.getElementById(id), QUADS[id]); }
+addEventListener('resize', layout);
+layout();
+
+/* ---------- intro: the screens glow first, then the lamp flickers on ---------- */
+function startIntro(){
+  if (reduce){ body.classList.remove('intro'); return; }
+  setTimeout(() => { body.classList.add('lamp-on'); body.classList.remove('intro'); }, 700);
+  setTimeout(() => body.classList.remove('lamp-on'), 2400);
+}
+const photo = $('.photo');
+if (photo.complete) startIntro(); else photo.addEventListener('load', startIntro, { once:true });
+
+/* ---------- phones: start on the laptop, drag to look around ---------- */
+function centerPortrait(){
+  if (!portrait()) return;
+  stage.scrollLeft = scene.offsetWidth * 0.5 - innerWidth / 2;
+}
+centerPortrait();
+addEventListener('resize', centerPortrait);
+stage.addEventListener('scroll', () => { $('#hint').style.opacity = 0; }, { once:true });
+
+/* ---------- a little parallax on desktop ---------- */
+let inRoom = null;
+addEventListener('pointermove', (e) => {
+  if (reduce || inRoom || portrait() || e.pointerType !== 'mouse') return;
+  const nx = e.clientX / innerWidth - .5, ny = e.clientY / innerHeight - .5;
+  scene.classList.add('drift');
+  scene.style.setProperty('--px', (-nx * 14).toFixed(1) + 'px');
+  scene.style.setProperty('--py', (-ny * 10).toFixed(1) + 'px');
+});
+
+/* ---------- camera moves into rooms ---------- */
+function go(room){
+  const c = CAM[room]; if (!c) return;
+  inRoom = room;
+  scene.classList.remove('drift');
+  // where is the target on screen right now?
+  const r = scene.getBoundingClientRect();
+  const tx = r.left + r.width * c.x / 100, ty = r.top + r.height * c.y / 100;
+  const cur = { x: parseFloat(getComputedStyle(scene).getPropertyValue('--px')) || 0,
+                y: parseFloat(getComputedStyle(scene).getPropertyValue('--py')) || 0 };
+  scene.style.setProperty('--ox', c.x + '%');
+  scene.style.setProperty('--oy', c.y + '%');
+  scene.style.setProperty('--px', (cur.x + innerWidth / 2 - tx) + 'px');
+  scene.style.setProperty('--py', (cur.y + innerHeight / 2 - ty) + 'px');
+  scene.style.setProperty('--s', c.s);
+  const [title, text] = ROOMS[room];
+  $('#roomTitle').textContent = title;
+  $('#roomText').textContent = text;
+  renderRoom(room);
+  body.classList.add('in-room');
+  $('#room').setAttribute('aria-hidden', 'false');
+  setTimeout(() => $('#backBtn').focus({ preventScroll:true }), reduce ? 0 : 900);
+  history.replaceState(null, '', '#' + room);
+}
+function back(){
+  if (!inRoom) return;
+  const was = inRoom; inRoom = null;
+  pauseVideos();
+  body.classList.remove('in-room');
+  $('#room').setAttribute('aria-hidden', 'true');
+  scene.style.setProperty('--px', '0px'); scene.style.setProperty('--py', '0px'); scene.style.setProperty('--s', 1);
+  history.replaceState(null, '', location.pathname + location.search);
+  const btn = document.querySelector(`[data-go="${was}"]`); if (btn) btn.focus({ preventScroll:true });
+}
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+  const r = b.dataset.go;
+  if (inRoom === r) return;
+  if (inRoom){ back(); setTimeout(() => go(r), reduce ? 0 : 750); } else go(r);
+}));
+$('#backBtn').addEventListener('click', back);
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') back();
+  if (e.code === 'Space' && !/INPUT|BUTTON|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); togglePlay(); }
+});
+// screen glow when its hotspot is hovered
+document.querySelectorAll('[data-screen]').forEach(b => {
+  const s = document.getElementById(b.dataset.screen);
+  ['pointerenter','focus'].forEach(ev => b.addEventListener(ev, () => s.classList.add('hot')));
+  ['pointerleave','blur'].forEach(ev => b.addEventListener(ev, () => s.classList.remove('hot')));
+});
+
+/* ---------- the lamp ---------- */
+function setLights(on){
+  body.classList.toggle('lights-off', !on);
+  $('#lampLabel').textContent = on ? 'Lights off' : 'Lights on';
+  $('#lampTag').textContent = on ? 'Lights off' : 'Lights on';
+  $('#lampSwitch').setAttribute('aria-pressed', String(on));
+  if (on && !reduce){ body.classList.add('lamp-on'); setTimeout(() => body.classList.remove('lamp-on'), 1600); }
+}
+let lit = true;
+$('#lampSwitch').addEventListener('click', () => setLights(lit = !lit));
+document.querySelector('[data-act="lamp"]').addEventListener('click', () => setLights(lit = !lit));
+document.querySelector('[data-act="play"]').addEventListener('click', () => togglePlay());
+
+/* =========================================================
+   PLAYER: real <audio> when a track has a src, otherwise a
+   silent clock so the UI still works.
+   ========================================================= */
+const audio = $('#audio'), canvas = $('#wave'), ctx = canvas.getContext('2d');
+let idx = 0, playing = false, simT = 0, simTimer = null, peaks = [];
+const fmt = (s) => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
+const track = () => TRACKS[idx];
+const duration = () => track().src ? (audio.duration || track().length) : track().length;
+const position = () => track().src ? audio.currentTime : simT;
+
+function fakePeaks(seed, n=200){
+  const out=[]; let h=0; for (const ch of seed) h = (h*31 + ch.charCodeAt(0)) >>> 0;
+  for (let i=0;i<n;i++){ const v = .28 + .72*Math.abs(Math.sin(i*.37 + h%7)*.6 + Math.sin(i*.11 + (h%13))*.4); out.push(Math.min(1, v)); }
+  return out;
+}
+async function realPeaks(src, n=200){
+  try{
+    const buf = await (await fetch(src)).arrayBuffer();
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const data = (await ac.decodeAudioData(buf)).getChannelData(0); ac.close();
+    const size = Math.floor(data.length / n), out = [];
+    for (let i=0;i<n;i++){ let m=0; for (let j=0;j<size;j+=16) m=Math.max(m, Math.abs(data[i*size+j])); out.push(m); }
+    const top = Math.max(...out) || 1; return out.map(v => .15 + .85*v/top);
+  } catch(e){ return null; }
+}
+function draw(){
+  const dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w*dpr){ canvas.width = w*dpr; canvas.height = h*dpr; }
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  const bars = Math.max(20, Math.floor(w / 4)), bw = 2, prog = position() / (duration() || 1);
+  for (let i=0;i<bars;i++){
+    const v = peaks[Math.floor(i / bars * peaks.length)] || .3, bh = Math.max(3, v*h);
+    ctx.fillStyle = i / bars < prog ? '#F5A443' : '#4A423A';
+    ctx.fillRect(i*4, (h-bh)/2, bw, bh);
+  }
+  $('#cur').textContent = fmt(position()); $('#dur').textContent = fmt(duration());
+  canvas.setAttribute('aria-valuenow', Math.round(prog*100));
+}
+function load(i, autoplay){
+  idx = (i + TRACKS.length) % TRACKS.length; simT = 0;
+  const t = track();
+  $('#trackTitle').textContent = t.title; $('#trackArtist').textContent = t.artist; $('#cover').src = t.cover;
+  peaks = fakePeaks(t.title);
+  if (t.src){ audio.src = t.src; if (t.peaks) peaks = t.peaks; }
+  else audio.removeAttribute('src');
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title:t.title, artist:t.artist, artwork:[{ src:t.cover, sizes:'480x480', type:'image/jpeg' }] });
+  syncLike(); markNowPlaying();
+  draw(); if (autoplay) play(); else pause();
+}
+function tick(){ simT += .25; if (simT >= duration()) return load(idx+1, true); draw(); }
+function play(){
+  playing = true; $('#player').classList.add('playing'); $('#playBtn').setAttribute('aria-label','Pause');
+  pauseVideos();
+  const t = track();
+  if (t.src){
+    audio.play().catch(()=>{});
+    if (!t.peaks && !t.peaksLoading){ t.peaksLoading = true; realPeaks(t.src).then(p => { if (p){ t.peaks = p; if (track() === t){ peaks = p; draw(); } } }); }
+  } else { clearInterval(simTimer); simTimer = setInterval(tick, 250); }
+}
+function pause(){
+  playing = false; $('#player').classList.remove('playing'); $('#playBtn').setAttribute('aria-label','Play');
+  audio.pause(); clearInterval(simTimer);
+}
+function togglePlay(){ playing ? pause() : play(); }
+function seekTo(frac){
+  frac = Math.min(1, Math.max(0, frac));
+  if (track().src && audio.duration) audio.currentTime = frac * audio.duration; else simT = frac * duration();
+  draw();
+}
+audio.addEventListener('timeupdate', () => { draw(); if (audio.currentTime > 5) countView(track().id); });
+audio.addEventListener('loadedmetadata', draw);
+audio.addEventListener('ended', () => load(idx+1, true));
+$('#playBtn').addEventListener('click', togglePlay);
+$('#nextBtn').addEventListener('click', () => load(idx+1, playing));
+$('#prevBtn').addEventListener('click', () => position() > 3 ? seekTo(0) : load(idx-1, playing));
+$('#vol').addEventListener('input', (e) => audio.volume = e.target.value);
+$('#likeBtn').addEventListener('click', () => toggleLike(track()));
+let dragging = false;
+const seekFromEvent = (e) => { const r = canvas.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width); };
+canvas.addEventListener('pointerdown', (e) => { dragging = true; canvas.setPointerCapture(e.pointerId); seekFromEvent(e); });
+canvas.addEventListener('pointermove', (e) => { if (dragging) seekFromEvent(e); });
+canvas.addEventListener('pointerup', () => dragging = false);
+canvas.addEventListener('keydown', (e) => {
+  const step = 5 / (duration() || 1), p = position() / (duration() || 1);
+  if (e.key === 'ArrowRight'){ e.preventDefault(); seekTo(p + step); }
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); seekTo(p - step); }
+});
+if ('mediaSession' in navigator){
+  navigator.mediaSession.setActionHandler('play', play);
+  navigator.mediaSession.setActionHandler('pause', pause);
+  navigator.mediaSession.setActionHandler('nexttrack', () => load(idx+1, true));
+  navigator.mediaSession.setActionHandler('previoustrack', () => load(idx-1, true));
+}
+addEventListener('resize', draw);
+
+/* =========================================================
+   DATA: everything you upload at /admin shows up here.
+   ========================================================= */
+const api = {
+  async get(path){ const r = await fetch(path); if (!r.ok) throw new Error(r.status); return r.json(); },
+  async post(path, body){
+    const r = await fetch(path, { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || 'Something went wrong. Try again.'); return d;
+  },
+};
+let LIB = null;
+function library(){
+  if (!LIB) LIB = api.get('/api/items').then(d => d.items).catch(() => []);
+  return LIB;
+}
+const liked = new Set();
+api.get('/api/like').then(d => { d.liked.forEach(id => liked.add(id)); syncLike(); }).catch(()=>{});
+const counted = new Set();
+function countView(id){
+  if (!id || counted.has(id)) return; counted.add(id);
+  api.post('/api/view', { id }).then(d => { const it = findItem(id); if (it) it.views = d.views; }).catch(()=>{});
+}
+let ITEMS = [];
+const findItem = (id) => ITEMS.find(i => i.id === id);
+function syncLike(){
+  const t = TRACKS[idx], on = !!(t && t.id && liked.has(t.id)), b = $('#likeBtn');
+  b.classList.toggle('liked', on); b.setAttribute('aria-pressed', String(on));
+}
+async function toggleLike(t){
+  if (!t || !t.id){ const b = $('#likeBtn'), on = !b.classList.contains('liked'); b.classList.toggle('liked', on); b.setAttribute('aria-pressed', String(on)); return; }
+  const on = !liked.has(t.id);
+  on ? liked.add(t.id) : liked.delete(t.id); syncLike();
+  try { const d = await api.post('/api/like', { id: t.id, liked: on }); const it = findItem(t.id); if (it) it.likes = d.likes; }
+  catch { on ? liked.delete(t.id) : liked.add(t.id); syncLike(); }
+}
+load(0, false);
+const asTrack = (i) => ({ id:i.id, title:i.title, artist:i.artist || 'idk∗wtnt', cover:i.cover || 'img/pour.jpg', src:i.url, length:0 });
+library().then(items => {
+  ITEMS = items;
+  const tracks = items.filter(i => i.type === 'track');
+  if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); }
+  // the laptop screen shows the four newest uploads that have a picture
+  const pics = items.filter(i => i.cover || i.type === 'photo' || i.type === 'art').slice(0, 4);
+  if (pics.length === 4){
+    document.querySelectorAll('#laptop figure').forEach((f, n) => {
+      f.querySelector('img').src = pics[n].cover || pics[n].url;
+      f.querySelector('figcaption').textContent = pics[n].title;
+    });
+  }
+});
+
+/* ---------- rooms ---------- */
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const COMING = { tees:true, misc:true };
+
+async function renderRoom(room){
+  const box = $('#roomBody'); box.innerHTML = '';
+  if (COMING[room]){ box.appendChild(el('p', 'empty', 'This room is still being built.')); return; }
+  if (room === 'about') return renderGuestbook(box);
+  const items = await library(); ITEMS = items;
+  if (inRoom !== room) return;
+  if (room === 'sound') return renderSound(box, items.filter(i => i.type === 'track'));
+  if (room === 'video') return renderVideo(box, items.filter(i => i.type === 'video'));
+  if (room === 'photos' || room === 'art') return renderGrid(box, items.filter(i => i.type === (room === 'art' ? 'art' : 'photo')));
+  if (room === 'archive') return renderArchive(box, items);
+}
+
+function markNowPlaying(){
+  document.querySelectorAll('.tl button').forEach(b => b.classList.toggle('now', b.dataset.id === (TRACKS[idx] && TRACKS[idx].id)));
+}
+function renderSound(box, tracks){
+  if (!tracks.length){ box.appendChild(el('p', 'empty', 'No music up yet.')); return; }
+  const list = el('div', 'tl');
+  tracks.forEach((it) => {
+    const b = el('button'); b.dataset.id = it.id;
+    const img = el('img'); img.src = it.cover || 'img/pour.jpg'; img.alt = '';
+    const mid = el('span'); mid.append(el('b', null, it.title), el('small', null, it.artist || 'idk∗wtnt'));
+    b.append(img, mid, el('span', 'n', `${plural(it.views, 'play')} · ${plural(it.likes, 'like')}`));
+    b.addEventListener('click', () => {
+      const n = TRACKS.findIndex(t => t.id === it.id);
+      if (n === idx && TRACKS[idx].src){ togglePlay(); return; }
+      if (n >= 0) load(n, true);
+    });
+    list.appendChild(b);
+  });
+  box.appendChild(list); markNowPlaying();
+}
+
+function pauseVideos(){ document.querySelectorAll('.room video').forEach(v => v.pause()); }
+function renderVideo(box, vids){
+  if (!vids.length){ box.appendChild(el('p', 'empty', 'No videos up yet.')); return; }
+  const wrap = el('div', 'vid'), main = el('div'), side = el('div', 'vlist');
+  const v = el('video'); v.controls = true; v.playsInline = true; v.preload = 'metadata';
+  const h = el('h3'), st = el('div', 'stats'), ds = el('div', 'desc');
+  main.append(v, h, st, ds);
+  let cur = null;
+  const show = (it, autoplay) => {
+    cur = it; v.src = it.url; if (it.cover) v.poster = it.cover; else v.removeAttribute('poster');
+    h.textContent = it.title; st.textContent = `${plural(it.views, 'view')} · ${plural(it.likes, 'like')}`; ds.textContent = it.description || '';
+    side.querySelectorAll('button').forEach(b => b.classList.toggle('now', b.dataset.id === it.id));
+    if (autoplay) v.play().catch(()=>{});
+  };
+  v.addEventListener('play', () => pause());
+  v.addEventListener('timeupdate', () => { if (cur && v.currentTime > 5) countView(cur.id); });
+  vids.forEach(it => {
+    const b = el('button'); b.dataset.id = it.id;
+    const th = el('span', 'th'); if (it.cover) th.style.backgroundImage = `url("${it.cover}")`;
+    const t = el('span'); t.append(el('b', null, it.title), el('small', null, plural(it.views, 'view')));
+    b.append(th, t); b.addEventListener('click', () => show(it, true));
+    side.appendChild(b);
+  });
+  wrap.append(main, side); box.appendChild(wrap); show(vids[0], false);
+}
+
+let lbList = [], lbAt = 0;
+function renderGrid(box, pics){
+  if (!pics.length){ box.appendChild(el('p', 'empty', 'Nothing up here yet.')); return; }
+  const g = el('div', 'grid');
+  pics.forEach((it, n) => {
+    const b = el('button'); b.setAttribute('aria-label', `Open ${it.title}`);
+    const img = el('img'); img.src = it.url; img.alt = it.title; img.loading = 'lazy';
+    b.appendChild(img); b.addEventListener('click', () => openLb(pics, n));
+    g.appendChild(b);
+  });
+  box.appendChild(g);
+}
+function openLb(list, n){ lbList = list; lbAt = n; showLb(); $('#lightbox').classList.add('open'); $('#lbClose').focus(); }
+function showLb(){
+  const it = lbList[lbAt]; $('#lbImg').src = it.url; $('#lbImg').alt = it.title;
+  $('#lbCap').textContent = it.description ? `${it.title}: ${it.description}` : it.title;
+  countView(it.id);
+}
+function closeLb(){ $('#lightbox').classList.remove('open'); }
+$('#lbClose').addEventListener('click', closeLb);
+$('#lbPrev').addEventListener('click', () => { lbAt = (lbAt - 1 + lbList.length) % lbList.length; showLb(); });
+$('#lbNext').addEventListener('click', () => { lbAt = (lbAt + 1) % lbList.length; showLb(); });
+$('#lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') closeLb(); });
+addEventListener('keydown', (e) => {
+  if (!$('#lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape'){ e.stopImmediatePropagation(); closeLb(); }
+  if (e.key === 'ArrowRight') $('#lbNext').click();
+  if (e.key === 'ArrowLeft') $('#lbPrev').click();
+}, true);
+
+const ROOM_OF = { track:'sound', video:'video', photo:'photos', art:'art' };
+function renderArchive(box, items){
+  if (!items.length){ box.appendChild(el('p', 'empty', 'Nothing uploaded yet.')); return; }
+  const list = el('div', 'tl');
+  items.forEach(it => {
+    const b = el('button');
+    const img = el('img'); img.src = it.cover || (it.type === 'photo' || it.type === 'art' ? it.url : 'img/pour.jpg'); img.alt = '';
+    const mid = el('span'); mid.append(el('b', null, it.title), el('small', null, `${({track:'Music',video:'Video',photo:'Photo',art:'Art'})[it.type] || it.type} · ${new Date(it.createdAt).toLocaleDateString()}`));
+    b.append(img, mid, el('span', 'n', plural(it.views, 'view')));
+    b.addEventListener('click', () => {
+      if (it.type === 'track'){ const n = TRACKS.findIndex(t => t.id === it.id); if (n >= 0) load(n, true); return; }
+      const r = ROOM_OF[it.type]; if (!r) return;
+      inRoom = r; $('#roomTitle').textContent = ROOMS[r][0]; $('#roomText').textContent = ROOMS[r][1]; renderRoom(r);
+      history.replaceState(null, '', '#' + r);
+    });
+    list.appendChild(b);
+  });
+  box.appendChild(list);
+}
+
+function renderGuestbook(box){
+  const wrap = el('div', 'gb');
+  const f = el('form'); f.noValidate = true;
+  f.innerHTML = `<label for="gbName">Your name</label><input id="gbName" maxlength="60" autocomplete="name">
+    <label for="gbBody">Your note</label><textarea id="gbBody" maxlength="600"></textarea>
+    <button type="submit">Pin it to the page</button><div class="status" id="gbStatus" role="status"></div>`;
+  const notes = el('div', 'notes');
+  const add = (n, top) => {
+    const a = el('article'), head = el('div'); head.append(el('b', null, n.name), el('time', null, new Date(n.createdAt).toLocaleDateString()));
+    a.append(head, el('p', null, n.body)); top ? notes.prepend(a) : notes.appendChild(a);
+  };
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = f.querySelector('#gbName').value.trim(), body = f.querySelector('#gbBody').value.trim(), st = f.querySelector('#gbStatus');
+    if (!name || !body){ st.textContent = 'Add your name and a note.'; return; }
+    st.textContent = 'Pinning…';
+    try { const { note } = await api.post('/api/notes', { name, body }); add(note, true); f.reset(); st.textContent = 'Pinned. Thanks for stopping by.'; notes.querySelector('.empty')?.remove(); }
+    catch (err) { st.textContent = err.message; }
+  });
+  wrap.append(f, notes); box.appendChild(wrap);
+  api.get('/api/notes').then(({ notes: list }) => {
+    if (!list.length) notes.appendChild(el('p', 'empty', 'No notes yet. Be the first to sign the notebook.'));
+    list.forEach(n => add(n, false));
+  }).catch(() => notes.appendChild(el('p', 'empty', 'The guestbook could not load. Try again in a moment.')));
+}
+
+/* deep links: idk-wtnt.art/#sound opens straight into a room */
+if (location.hash && CAM[location.hash.slice(1)]) setTimeout(() => go(location.hash.slice(1)), 2600);
+addEventListener('hashchange', () => { const r = location.hash.slice(1); if (CAM[r] && r !== inRoom) go(r); else if (!r) back(); });
+</script>
+</body>
+</html>
