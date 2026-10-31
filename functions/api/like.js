@@ -1,4 +1,4 @@
-import { ensureSchema, handle, HttpError, json, readJson, visitorId } from '../_lib.js';
+import { bump, ensureSchema, handle, HttpError, json, readJson, visitorId } from '../_lib.js';
 
 // POST /api/like {id, liked: true|false}  -> one like per visitor per item
 export const onRequestPost = handle(async ({ request, env }) => {
@@ -13,7 +13,7 @@ export const onRequestPost = handle(async ({ request, env }) => {
     if (del.meta.changes) await env.DB.prepare('UPDATE items SET likes = MAX(likes - 1, 0) WHERE id = ?').bind(id).run();
   } else {
     const ins = await env.DB.prepare('INSERT OR IGNORE INTO likes (item_id, visitor) VALUES (?, ?)').bind(id, visitor).run();
-    if (ins.meta.changes) await env.DB.prepare('UPDATE items SET likes = likes + 1 WHERE id = ?').bind(id).run();
+    if (ins.meta.changes) { await env.DB.prepare('UPDATE items SET likes = likes + 1 WHERE id = ?').bind(id).run(); await bump(env, 'likes'); }
   }
   const row = await env.DB.prepare('SELECT likes FROM items WHERE id = ?').bind(id).first();
   return json({ likes: row.likes, liked: liked !== false });

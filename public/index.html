@@ -480,6 +480,7 @@ function go(room){
   $('#roomTitle').textContent = title;
   $('#roomText').textContent = text;
   renderRoom(room);
+  sendStat({ type:'room', room });
   body.classList.add('in-room');
   $('#room').setAttribute('aria-hidden', 'false');
   setTimeout(() => $('#backBtn').focus({ preventScroll:true }), reduce ? 0 : 900);
@@ -811,6 +812,14 @@ function renderGuestbook(box){
     list.forEach(n => add(n, false));
   }).catch(() => notes.appendChild(el('p', 'empty', 'The guestbook could not load. Try again in a moment.')));
 }
+
+/* ---------- visit stats (your own browser is skipped once you've logged in at /admin) ---------- */
+let owner = false; try { owner = localStorage.getItem('idk-owner') === '1'; } catch {}
+function sendStat(data){
+  if (owner) return;
+  try { fetch('/api/track', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify(data), keepalive:true }).catch(()=>{}); } catch {}
+}
+sendStat({ type:'pageview', ref: document.referrer });
 
 /* deep links: idk-wtnt.art/#sound opens straight into a room */
 if (location.hash && CAM[location.hash.slice(1)]) setTimeout(() => go(location.hash.slice(1)), 2600);

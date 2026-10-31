@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Upload · idk∗wtnt</title>
+<title>Dashboard · idk∗wtnt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
@@ -65,6 +65,37 @@ textarea{min-height:84px;resize:vertical}
 .note:first-child{border-top:0}
 .note p{margin:4px 0 0;color:var(--dust);white-space:pre-wrap}
 #login{max-width:420px;margin:12vh auto 0}
+.st-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:20px}
+.st-head h2{margin:0;flex:1}
+.range{display:flex;gap:6px}
+.range button{height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--edge);background:transparent;color:var(--dust);cursor:pointer;font-size:14px}
+.range button[aria-pressed=true]{border-color:var(--lamp);color:var(--lamp)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.tile{background:var(--raise);border-radius:12px;padding:16px}
+.tile .lab{font-size:14px;color:var(--dust)}
+.tile .val{font-size:32px;font-weight:300;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .chg{font-size:13px;color:var(--dim);margin-top:2px}
+.tile .chg.up{color:var(--good)} .tile .chg.down{color:var(--bad)}
+.chartbox{position:relative;margin-bottom:28px}
+.chartbox .cap{font-size:14px;color:var(--dust);margin-bottom:8px}
+.chartbox svg{display:block;width:100%;height:220px;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:#0D0B09;border:1px solid var(--edge);border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.5;white-space:nowrap;transform:translate(-50%,-100%);display:none;z-index:2}
+.tip b{font-weight:500}
+.lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px}
+.lists h3{margin:0 0 10px;font-size:15px;font-weight:400;color:var(--dust)}
+.rank{display:flex;flex-direction:column;gap:8px}
+.rank .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;font-size:14px}
+.rank .r span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .r .n{font-variant-numeric:tabular-nums;color:var(--dust)}
+.rank .bar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--edge)}
+.rank .bar i{display:block;height:100%;border-radius:2px;background:var(--lamp)}
+.top-items .r{grid-template-columns:36px minmax(0,1fr) auto;align-items:center}
+.top-items img,.top-items .ph{width:36px;height:36px;border-radius:6px;object-fit:cover;background:var(--raise)}
+.st-note{font-size:13px;color:var(--dim);margin:20px 0 0}
+details.tbl{margin-top:8px;font-size:13px;color:var(--dim)}
+details.tbl table{border-collapse:collapse;margin-top:8px;width:100%;max-width:520px}
+details.tbl td,details.tbl th{text-align:right;padding:3px 8px;border-bottom:1px solid var(--edge);font-variant-numeric:tabular-nums}
+details.tbl td:first-child,details.tbl th:first-child{text-align:left}
 .meter{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--edge)}
 .mtop{display:flex;justify-content:space-between;font-size:14px;color:var(--dust);margin-bottom:8px}
 .mbar{height:8px;border-radius:4px;background:var(--edge);overflow:hidden}
@@ -79,7 +110,7 @@ textarea{min-height:84px;resize:vertical}
 <div class="wrap">
 
   <section id="login">
-    <h2>Upload to idk∗wtnt</h2>
+    <h2>idk∗wtnt dashboard</h2>
     <form id="loginForm">
       <label for="pw">Password</label>
       <input id="pw" type="password" autocomplete="current-password" required>
@@ -90,11 +121,29 @@ textarea{min-height:84px;resize:vertical}
 
   <div id="app" class="hide">
     <header>
-      <h1>Upload</h1>
+      <h1>Dashboard</h1>
       <span class="sp"></span>
       <a href="/">View the site</a>
       <button class="btn small" id="logout">Log out</button>
     </header>
+
+    <section id="stats" aria-labelledby="stTitle">
+      <div class="st-head"><h2 id="stTitle">Stats</h2>
+        <div class="range" role="group" aria-label="Time range">
+          <button data-d="7" aria-pressed="false">7 days</button><button data-d="30" aria-pressed="true">30 days</button><button data-d="90" aria-pressed="false">90 days</button>
+        </div></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="chartbox"><div class="cap" id="chartCap">Visitors per day</div><svg id="chart" role="img" aria-label="Visitors per day"></svg><div class="tip" id="tip"></div>
+        <details class="tbl"><summary>Show as a table</summary><table id="chartTable"></table></details></div>
+      <div class="lists">
+        <div><h3>Most played and viewed</h3><div class="rank top-items" id="topItems"></div></div>
+        <div><h3>Rooms opened</h3><div class="rank" id="topRooms"></div></div>
+        <div><h3>Where visitors came from</h3><div class="rank" id="topRefs"></div></div>
+        <div><h3>Countries</h3><div class="rank" id="topCountries"></div></div>
+        <div><h3>Devices</h3><div class="rank" id="topDevices"></div></div>
+      </div>
+      <p class="st-note">A visitor is one person (one browser) per day. Plays and views count after 5 seconds, once per visitor per day. Bots and your own visits from this browser aren't counted.</p>
+    </section>
 
     <section>
       <div class="meter"><div class="mtop"><span>Storage</span><span id="meterText">…</span></div><div class="mbar"><i id="meterBar"></i></div>
@@ -169,7 +218,8 @@ async function enter(){
     await api('/api/items?all=1');
     try { sessionStorage.setItem('idk-pw', pw); } catch {}
     $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-    loadList(); loadNotes();
+    try { localStorage.setItem('idk-owner', '1'); } catch {}
+    loadStats(); loadList(); loadNotes();
   } catch (e) {
     $('#loginMsg').textContent = e.message; $('#loginMsg').className = 'msg bad';
   }
@@ -339,6 +389,100 @@ async function loadNotes(){
     }
   } catch (e) { box.innerHTML = `<p class="empty">${e.message}</p>`; }
 }
+/* ---------- stats ---------- */
+let range = 30;
+const nf = new Intl.NumberFormat();
+const regionName = (() => { try { const d = new Intl.DisplayNames(['en'], { type:'region' }); return (c) => (c === 'XX' || c === 'T1') ? 'Unknown' : (d.of(c) || c); } catch { return (c) => c; } })();
+const ROOM_NAME = { video:'Video', sound:'Sound', art:'Art', photos:'Photos', tees:'Tees', misc:'Misc', archive:'Archive', about:'About + guestbook' };
+const fmtDay = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString(undefined, { day:'numeric', month:'short', timeZone:'UTC' });
+
+document.querySelectorAll('.range button').forEach(b => b.addEventListener('click', () => {
+  range = Number(b.dataset.d);
+  document.querySelectorAll('.range button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  loadStats();
+}));
+
+async function loadStats(){
+  let d;
+  try { d = await api('/api/stats?days=' + range); } catch (e) { $('#tiles').innerHTML = `<p class="empty">${e.message}</p>`; return; }
+  const tile = (label, cur, prev) => {
+    let chg = '', cls = '';
+    if (prev > 0) { const p = Math.round((cur - prev) / prev * 100); chg = `${p >= 0 ? '+' : ''}${p}% vs previous ${range} days`; cls = p > 0 ? 'up' : p < 0 ? 'down' : ''; }
+    else if (cur > 0) chg = `new in the last ${range} days`;
+    else chg = 'none yet';
+    return `<div class="tile"><div class="lab">${label}</div><div class="val">${nf.format(cur)}</div><div class="chg ${cls}">${chg}</div></div>`;
+  };
+  const T = d.totals, P = d.previous;
+  $('#tiles').innerHTML = tile('Visitors', T.visitors, P.visitors) + tile('Page views', T.pageviews, P.pageviews) +
+    tile('Plays and views', T.plays, P.plays) + tile('Likes', T.likes, P.likes) + tile('Guestbook notes', T.notes, P.notes);
+  lastSeries = d.series; drawChart(d.series);
+  rankList('#topRooms', d.rooms, (k) => ROOM_NAME[k] || k, 'No rooms opened yet.');
+  rankList('#topRefs', d.referrers, (k) => k === 'Direct' ? 'Direct (typed the link or an app)' : k, 'No visitors yet.');
+  rankList('#topCountries', d.countries, regionName, 'No visitors yet.');
+  rankList('#topDevices', d.devices, (k) => k, 'No visitors yet.');
+  const ti = $('#topItems'); ti.innerHTML = '';
+  if (!d.items.length) ti.innerHTML = '<p class="empty">Nothing uploaded yet.</p>';
+  d.items.forEach(it => {
+    const r = document.createElement('div'); r.className = 'r';
+    r.innerHTML = (it.thumb ? '<img alt="">' : '<span class="ph"></span>') + '<span></span><span class="n"></span>';
+    if (it.thumb) r.querySelector('img').src = it.thumb;
+    r.children[1].textContent = it.title;
+    const w = it.type === 'track' ? 'play' : 'view';
+    r.querySelector('.n').textContent = `${nf.format(it.views)} ${w}${it.views === 1 ? '' : 's'} · ${nf.format(it.likes)} ♥`;
+    ti.appendChild(r);
+  });
+}
+
+function rankList(sel, rows, name, empty){
+  const box = $(sel); box.innerHTML = '';
+  if (!rows.length){ box.innerHTML = `<p class="empty">${empty}</p>`; return; }
+  const max = rows[0].count;
+  rows.forEach(({ key, count }) => {
+    const r = document.createElement('div'); r.className = 'r';
+    r.innerHTML = '<span></span><span class="n"></span><span class="bar"><i></i></span>';
+    r.children[0].textContent = name(key); r.querySelector('.n').textContent = nf.format(count);
+    r.querySelector('i').style.width = Math.max(2, count / max * 100) + '%';
+    box.appendChild(r);
+  });
+}
+
+function drawChart(series){
+  const svg = $('#chart'), tip = $('#tip'), W = svg.clientWidth || 900, H = 220, padL = 36, padB = 26, padT = 8;
+  const max = Math.max(4, ...series.map(s => s.visitors));
+  const step = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : 1);
+  const top = Math.ceil(max / step) * step;
+  const y = (v) => padT + (H - padT - padB) * (1 - v / top);
+  const n = series.length, slot = (W - padL) / n, bw = Math.max(2, Math.min(28, slot - 2));
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${padL}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="#2A2520" stroke-width="1"/><text x="${padL - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#968B7C">${nf.format(v)}</text>`;
+  const every = Math.ceil(n / 6);
+  series.forEach((s, i) => {
+    const x = padL + i * slot + (slot - bw) / 2, h = Math.max(0, y(0) - y(s.visitors)), r = Math.min(4, bw / 2, h);
+    if (h > 0) g += `<path d="M${x} ${y(0)}V${y(0) - h + r}Q${x} ${y(0) - h} ${x + r} ${y(0) - h}H${x + bw - r}Q${x + bw} ${y(0) - h} ${x + bw} ${y(0) - h + r}V${y(0)}Z" fill="#F5A443"/>`;
+    if (i % every === 0 || i === n - 1) g += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="11" fill="#968B7C">${fmtDay(s.day)}</text>`;
+    g += `<rect class="hit" data-i="${i}" x="${padL + i * slot}" y="${padT}" width="${slot}" height="${H - padT - padB}" fill="transparent"/>`;
+  });
+  g += `<line x1="${padL}" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#4A423A" stroke-width="1"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = g;
+  const total = series.reduce((a, s) => a + s.visitors, 0);
+  svg.setAttribute('aria-label', `Visitors per day for the last ${n} days, ${nf.format(total)} in total`);
+  $('#chartCap').textContent = `Visitors per day, last ${n} days`;
+  svg.querySelectorAll('.hit').forEach(h => {
+    h.addEventListener('pointerenter', () => {
+      const s = series[h.dataset.i], bx = h.getBoundingClientRect(), box = svg.parentNode.getBoundingClientRect();
+      tip.innerHTML = `<b>${fmtDay(s.day)}</b><br>${nf.format(s.visitors)} visitors · ${nf.format(s.pageviews)} page views<br>${nf.format(s.plays)} plays · ${nf.format(s.likes)} likes`;
+      tip.style.left = Math.min(Math.max(bx.left - box.left + bx.width / 2, 90), box.width - 90) + 'px';
+      tip.style.top = (y(s.visitors) + svg.getBoundingClientRect().top - box.top - 8) + 'px';
+      tip.style.display = 'block';
+    });
+    h.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+  });
+  $('#chartTable').innerHTML = '<tr><th>Day</th><th>Visitors</th><th>Page views</th><th>Plays</th><th>Likes</th></tr>' +
+    series.slice().reverse().map(s => `<tr><td>${fmtDay(s.day)}</td><td>${s.visitors}</td><td>${s.pageviews}</td><td>${s.plays}</td><td>${s.likes}</td></tr>`).join('');
+}
+let lastSeries = null, rz;
+addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (lastSeries) drawChart(lastSeries); }, 150); });
+
 setType('track');
 </script>
 </body>

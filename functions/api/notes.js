@@ -1,4 +1,4 @@
-import { ensureSchema, handle, HttpError, json, readJson, visitorId } from '../_lib.js';
+import { bump, ensureSchema, handle, HttpError, json, readJson, visitorId } from '../_lib.js';
 
 // GET /api/notes -> latest guestbook notes
 export const onRequestGet = handle(async ({ env }) => {
@@ -22,5 +22,6 @@ export const onRequestPost = handle(async ({ request, env }) => {
   const note = { id: crypto.randomUUID(), name, body, createdAt: new Date().toISOString() };
   await env.DB.prepare('INSERT INTO notes (id, name, body, visitor, created_at) VALUES (?, ?, ?, ?, ?)')
     .bind(note.id, name, body, visitor, note.createdAt).run();
+  await bump(env, 'notes');
   return json({ note }, 201);
 });

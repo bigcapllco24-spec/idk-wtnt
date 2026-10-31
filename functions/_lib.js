@@ -30,6 +30,13 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS files (
      key TEXT PRIMARY KEY, size INTEGER NOT NULL, created_at TEXT NOT NULL
    )`,
+  `CREATE TABLE IF NOT EXISTS stats (
+     day TEXT NOT NULL, metric TEXT NOT NULL, key TEXT NOT NULL DEFAULT '', n INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (day, metric, key)
+   )`,
+  `CREATE TABLE IF NOT EXISTS visits (
+     day TEXT NOT NULL, visitor TEXT NOT NULL, PRIMARY KEY (day, visitor)
+   )`,
   `CREATE TABLE IF NOT EXISTS notes (
      id TEXT PRIMARY KEY, name TEXT NOT NULL, body TEXT NOT NULL,
      visitor TEXT, created_at TEXT NOT NULL
@@ -39,6 +46,7 @@ const SCHEMA = [
 let schemaReady = false;
 // Creates the tables the first time the API is used, so there's no setup script to run.
 export async function ensureSchema(env) {
+  setTimezone(env);
   if (schemaReady) return;
   if (!env.DB) throw new HttpError(500, 'The database is not connected. Add a D1 binding named DB in the Cloudflare dashboard.');
   await env.DB.batch(SCHEMA.map((sql) => env.DB.prepare(sql)));
@@ -94,7 +102,11 @@ export async function visitorId(request, env) {
   return [...new Uint8Array(buf)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export const today = () => new Date().toISOString().slice(0, 10);
+// Days roll over at midnight in the site owner's time zone (India by default; set TZ_OFFSET_MINUTES to change).
+let tzOffsetMin = 330;
+export function setTimezone(env) { const v = Number(env.TZ_OFFSET_MINUTES); if (Number.isFinite(v)) tzOffsetMin = v; }
+export const dayOf = (ms) => new Date(ms + tzOffsetMin * 60000).toISOString().slice(0, 10);
+export const today = () => dayOf(Date.now());
 
 export function publicItem(row) {
   return {
@@ -141,4 +153,25 @@ export async function recordFile(env, key, size) {
 }
 export async function forgetFiles(env, keys) {
   for (const k of keys) await env.DB.prepare('DELETE FROM files WHERE key = ?').bind(k).run();
+}
+
+// ---------- analytics: one row per day per metric per key, so the dashboard stays cheap to read ----------
+export function bumpStmt(env, metric, key = '', n = 1, day = today()) {
+  return env.DB.prepare(
+    `INSERT INTO stats (day, metric, key, n) VALUES (?, ?, ?, ?)
+     ON CONFLICT(day, metric, key) DO UPDATE SET n = n + excluded.n`
+  ).bind(day, metric, String(key).slice(0, 120), n);
+}
+export async function bump(env, metric, key = '', n = 1) {
+  await bumpStmt(env, metric, key, n).run();
+}
+export function isBot(request) {
+  const ua = (request.headers.get('user-agent') || '').toLowerCase();
+  return !ua || /bot|crawl|spider|slurp|preview|fetch|monitor|curl|wget|python|headless|lighthouse|scan/.test(ua);
+}
+export function deviceOf(request) {
+  const ua = request.headers.get('user-agent') || '';
+  if (/ipad|tablet|(android(?!.*mobile))/i.test(ua)) return 'Tablet';
+  if (/mobi|iphone|android/i.test(ua)) return 'Phone';
+  return 'Computer';
 }

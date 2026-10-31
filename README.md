@@ -5,7 +5,8 @@ Music, art, tees and other things from my desk. A photo of the desk at night is 
 - **Site:** `public/` (plain HTML, CSS and JS, no build step)
 - **Server:** `functions/` (Cloudflare Pages Functions)
 - **Files** (music, photos, videos) live in Cloudflare **R2**; **views, likes and guestbook** in Cloudflare **D1**.
-- **Uploads:** go to `/admin` on the live site and log in with your admin password.
+- **Dashboard:** go to `/admin` on the live site and log in with your admin password: stats (visitors, page views, plays, likes, rooms, sources, countries, devices), uploads, library and guestbook.
+- Stats are daily totals in D1 (`stats` table). Days roll over at midnight India time (`TZ_OFFSET_MINUTES`, default 330). Bots and the owner's own browser (after logging in) aren't counted.
 
 ## Cloudflare setup (one time)
 
