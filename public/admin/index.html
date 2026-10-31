@@ -65,6 +65,12 @@ textarea{min-height:84px;resize:vertical}
 .note:first-child{border-top:0}
 .note p{margin:4px 0 0;color:var(--dust);white-space:pre-wrap}
 #login{max-width:420px;margin:12vh auto 0}
+.meter{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--edge)}
+.mtop{display:flex;justify-content:space-between;font-size:14px;color:var(--dust);margin-bottom:8px}
+.mbar{height:8px;border-radius:4px;background:var(--edge);overflow:hidden}
+.mbar i{display:block;height:100%;width:0;background:var(--lamp);transition:width .4s}
+.mbar i.high{background:var(--bad)}
+.mnote{margin:8px 0 0;font-size:13px;color:var(--dim)}
 .hide{display:none !important}
 @media (max-width:560px){.item{grid-template-columns:48px minmax(0,1fr)}.acts{grid-column:1/-1;justify-content:flex-start}}
 </style>
@@ -91,6 +97,8 @@ textarea{min-height:84px;resize:vertical}
     </header>
 
     <section>
+      <div class="meter"><div class="mtop"><span>Storage</span><span id="meterText">…</span></div><div class="mbar"><i id="meterBar"></i></div>
+        <p class="mnote">Uploads stop at the cap, so you stay inside Cloudflare's free 10 GB and are never charged for storage.</p></div>
       <h2>Add something</h2>
       <div class="types" role="group" aria-label="What are you uploading?">
         <button type="button" data-type="track" aria-pressed="true">Music</button>
@@ -218,7 +226,7 @@ async function sendFile(file, t, role, onProgress){
     return (await put('/api/files?' + q, file, ct, onProgress)).key;
   }
   const { key, uploadId } = await api('/api/files/multipart', { method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ action:'start', type:t, name:file.name, contentType:ct }) });
+    body: JSON.stringify({ action:'start', type:t, name:file.name, contentType:ct, size:file.size }) });
   const parts = [];
   try {
     for (let i = 0, n = 1; i < file.size; i += CHUNK, n++) {
@@ -272,7 +280,16 @@ $('#up').addEventListener('submit', async (e) => {
 });
 
 /* ---------- library ---------- */
+async function loadUsage(){
+  try {
+    const { used, limit } = await api('/api/usage');
+    const pct = Math.min(100, used / limit * 100), gb = (b) => (b / 1024 ** 3).toFixed(b < 1024 ** 3 ? 2 : 1);
+    $('#meterText').textContent = `${gb(used)} GB of ${gb(limit)} GB used`;
+    $('#meterBar').style.width = Math.max(pct, 0.5) + '%'; $('#meterBar').classList.toggle('high', pct > 85);
+  } catch {}
+}
 async function loadList(){
+  loadUsage();
   try { items = (await api('/api/items?all=1')).items; } catch (e) { $('#list').innerHTML = `<p class="empty">${e.message}</p>`; return; }
   renderList();
 }

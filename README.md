@@ -26,6 +26,9 @@ Visit `https://<project>.pages.dev/admin`, log in, upload.
 
 ## Limits on the free plan
 
+Uploads are refused once stored files reach **9 GB** (set `STORAGE_LIMIT_GB` to change it, max 9.5), so storage never goes past R2's free 10 GB. The upload page shows a meter. Everything else on the free plan stops at its limit rather than billing.
+
+
 - R2: 10 GB of files, free bandwidth.
 - D1: 5 M rows read / 100 K rows written per day.
 - Functions: 100 K requests per day.

@@ -1,4 +1,4 @@
-import { handle, HttpError, json, readJson, requireAdmin, TYPES } from '../../_lib.js';
+import { checkRoom, ensureSchema, handle, HttpError, json, readJson, recordFile, requireAdmin, TYPES } from '../../_lib.js';
 import { checkKey, checkKind, newKey } from './_keys.js';
 
 // Large files (music videos) go up in chunks so no single request is too big.
@@ -14,6 +14,8 @@ export const onRequestPost = handle(async ({ request, env }) => {
     if (!TYPES.includes(body.type)) throw new HttpError(400, 'Unknown type.');
     const contentType = body.contentType || 'application/octet-stream';
     checkKind(body.type, 'file', contentType);
+    await ensureSchema(env);
+    await checkRoom(env, body.size);
     const key = newKey(body.type, body.name);
     const up = await env.MEDIA.createMultipartUpload(key, { httpMetadata: { contentType } });
     return json({ key: up.key, uploadId: up.uploadId });
@@ -22,7 +24,9 @@ export const onRequestPost = handle(async ({ request, env }) => {
   const up = env.MEDIA.resumeMultipartUpload(key, String(body.uploadId || ''));
   if (body.action === 'complete') {
     if (!Array.isArray(body.parts) || !body.parts.length) throw new HttpError(400, 'No parts to join.');
-    await up.complete(body.parts.map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })));
+    const obj = await up.complete(body.parts.map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })));
+    await ensureSchema(env);
+    await recordFile(env, key, obj.size);
     return json({ key });
   }
   if (body.action === 'abort') { await up.abort(); return json({ aborted: true }); }

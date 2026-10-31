@@ -1,4 +1,4 @@
-import { ensureSchema, handle, HttpError, json, publicItem, readJson, requireAdmin } from '../../_lib.js';
+import { ensureSchema, forgetFiles, handle, HttpError, json, publicItem, readJson, requireAdmin } from '../../_lib.js';
 
 async function load(env, id) {
   const row = await env.DB.prepare('SELECT * FROM items WHERE id = ?').bind(id).first();
@@ -27,7 +27,7 @@ export const onRequestDelete = handle(async ({ request, env, params }) => {
   await ensureSchema(env);
   const row = await load(env, params.id);
   const keys = [row.file_key, row.cover_key].filter(Boolean);
-  if (keys.length) await env.MEDIA.delete(keys);
+  if (keys.length) { await env.MEDIA.delete(keys); await forgetFiles(env, keys); }
   await env.DB.batch([
     env.DB.prepare('DELETE FROM items WHERE id = ?').bind(params.id),
     env.DB.prepare('DELETE FROM views WHERE item_id = ?').bind(params.id),

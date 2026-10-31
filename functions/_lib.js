@@ -27,6 +27,9 @@ const SCHEMA = [
      item_id TEXT NOT NULL, visitor TEXT NOT NULL,
      PRIMARY KEY (item_id, visitor)
    )`,
+  `CREATE TABLE IF NOT EXISTS files (
+     key TEXT PRIMARY KEY, size INTEGER NOT NULL, created_at TEXT NOT NULL
+   )`,
   `CREATE TABLE IF NOT EXISTS notes (
      id TEXT PRIMARY KEY, name TEXT NOT NULL, body TEXT NOT NULL,
      visitor TEXT, created_at TEXT NOT NULL
@@ -112,4 +115,30 @@ export function publicItem(row) {
 
 export async function readJson(request) {
   try { return await request.json(); } catch { throw new HttpError(400, 'Expected a JSON body.'); }
+}
+
+// Storage cap: uploads are refused before the R2 free tier (10 GB) could be exceeded.
+const GB = 1024 ** 3;
+export function storageLimit(env) {
+  const gb = Number(env.STORAGE_LIMIT_GB || 9);
+  return Math.max(0.1, Math.min(gb, 9.5)) * GB;
+}
+export async function storageUsed(env) {
+  const row = await env.DB.prepare('SELECT COALESCE(SUM(size), 0) AS used FROM files').first();
+  return row.used;
+}
+export async function checkRoom(env, incoming) {
+  const size = Number(incoming);
+  if (!Number.isFinite(size) || size <= 0) throw new HttpError(411, 'File size is missing.');
+  const used = await storageUsed(env), limit = storageLimit(env);
+  if (used + size > limit) {
+    const free = Math.max(0, limit - used);
+    throw new HttpError(507, `Not enough free space: ${(size / 1048576).toFixed(0)} MB needed, ${(free / 1048576).toFixed(0)} MB left under the free limit. Delete something first.`);
+  }
+}
+export async function recordFile(env, key, size) {
+  await env.DB.prepare('INSERT OR REPLACE INTO files (key, size, created_at) VALUES (?, ?, ?)').bind(key, size, new Date().toISOString()).run();
+}
+export async function forgetFiles(env, keys) {
+  for (const k of keys) await env.DB.prepare('DELETE FROM files WHERE key = ?').bind(k).run();
 }
