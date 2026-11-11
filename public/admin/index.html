@@ -65,6 +65,20 @@ textarea{min-height:84px;resize:vertical}
 .note:first-child{border-top:0}
 .note p{margin:4px 0 0;color:var(--dust);white-space:pre-wrap}
 #login{max-width:420px;margin:12vh auto 0}
+.sp-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sp-head h2{margin:0;flex:1}
+.sp-user{display:flex;align-items:center;gap:10px;font-size:15px}
+.sp-user img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.sp-modes{display:flex;flex-direction:column;gap:8px;margin:8px 0 16px}
+.sp-modes label{display:flex;gap:10px;align-items:center;color:var(--paper);font-size:15px}
+.sp-modes input{accent-color:var(--lamp);width:18px;height:18px}
+.sp-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:20px}
+.sp-list label{display:grid;grid-template-columns:20px 44px minmax(0,1fr);gap:10px;align-items:center;padding:8px;border:1px solid var(--edge);border-radius:10px;cursor:pointer;color:var(--paper)}
+.sp-list label.off{opacity:.55}
+.sp-list input{accent-color:var(--lamp);width:18px;height:18px}
+.sp-list img,.sp-list .ph{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--raise)}
+.sp-list b{display:block;font-weight:400;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-list small{color:var(--dim);font-size:12px}
 .st-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:20px}
 .st-head h2{margin:0;flex:1}
 .range{display:flex;gap:6px}
@@ -114,6 +128,7 @@ details.tbl td:first-child,details.tbl th:first-child{text-align:left}
     <form id="loginForm">
       <label for="pw">Password</label>
       <input id="pw" type="password" autocomplete="current-password" required>
+      <label class="check" style="margin:14px 0 0"><input id="remember" type="checkbox" checked> Stay logged in on this device</label>
       <p class="msg" id="loginMsg"></p>
       <button class="btn primary" type="submit">Log in</button>
     </form>
@@ -143,6 +158,11 @@ details.tbl td:first-child,details.tbl th:first-child{text-align:left}
         <div><h3>Devices</h3><div class="rank" id="topDevices"></div></div>
       </div>
       <p class="st-note">A visitor is one person (one browser) per day. Plays and views count after 5 seconds, once per visitor per day. Bots and your own visits from this browser aren't counted.</p>
+    </section>
+
+    <section id="spotify" aria-labelledby="spTitle">
+      <div class="sp-head"><h2 id="spTitle">Spotify</h2><div id="spUser"></div></div>
+      <div id="spBody"><p class="empty">Loading…</p></div>
     </section>
 
     <section>
@@ -201,7 +221,7 @@ const CHUNK = 20 * 1024 * 1024;          // files over this go up in 20 MB piece
 const ACCEPT = { track: 'audio/*', video: 'video/*', photo: 'image/*', art: 'image/*' };
 const LABEL = { track: 'Music', video: 'Video', photo: 'Photo', art: 'Art' };
 let pw = '';
-try { pw = sessionStorage.getItem('idk-pw') || ''; } catch {}
+try { pw = localStorage.getItem('idk-pw') || sessionStorage.getItem('idk-pw') || ''; } catch {}
 let type = 'track', filter = '', items = [];
 
 async function api(path, opts = {}) {
@@ -216,16 +236,16 @@ async function api(path, opts = {}) {
 async function enter(){
   try {
     await api('/api/items?all=1');
-    try { sessionStorage.setItem('idk-pw', pw); } catch {}
+    try { sessionStorage.setItem('idk-pw', pw); if ($('#remember') && $('#remember').checked) localStorage.setItem('idk-pw', pw); } catch {}
     $('#login').classList.add('hide'); $('#app').classList.remove('hide');
     try { localStorage.setItem('idk-owner', '1'); } catch {}
-    loadStats(); loadList(); loadNotes();
+    loadStats(); loadList(); loadNotes(); loadSpotify();
   } catch (e) {
     $('#loginMsg').textContent = e.message; $('#loginMsg').className = 'msg bad';
   }
 }
 $('#loginForm').addEventListener('submit', (e) => { e.preventDefault(); pw = $('#pw').value; enter(); });
-$('#logout').addEventListener('click', () => { try { sessionStorage.removeItem('idk-pw'); } catch {} location.reload(); });
+$('#logout').addEventListener('click', () => { try { sessionStorage.removeItem('idk-pw'); localStorage.removeItem('idk-pw'); } catch {} location.reload(); });
 if (pw) enter();
 
 /* ---------- upload form ---------- */
@@ -389,11 +409,90 @@ async function loadNotes(){
     }
   } catch (e) { box.innerHTML = `<p class="empty">${e.message}</p>`; }
 }
+/* ---------- Spotify ---------- */
+const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+async function connectSpotify(clientId, scopes){
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const rand = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (x) => chars[x % chars.length]).join('');
+  const verifier = rand(64), state = rand(16);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  sessionStorage.setItem('sp-verifier', verifier); sessionStorage.setItem('sp-state', state);
+  const q = new URLSearchParams({ response_type:'code', client_id: clientId, scope: scopes, code_challenge_method:'S256',
+    code_challenge: challenge, redirect_uri: location.origin + '/admin/spotify.html', state });
+  location.href = 'https://accounts.spotify.com/authorize?' + q;
+}
+async function loadSpotify(){
+  const body = $('#spBody'), head = $('#spUser');
+  let d;
+  try { d = await api('/api/spotify/status'); } catch (e) { body.innerHTML = `<p class="empty">${e.message}</p>`; return; }
+  head.innerHTML = '';
+  if (!d.clientId){
+    body.innerHTML = '<p class="empty">Spotify isn\'t set up yet. It needs a Spotify developer app; once its Client ID is added in Cloudflare as SPOTIFY_CLIENT_ID, a Connect button appears here.</p>';
+    return;
+  }
+  if (!d.user){
+    body.innerHTML = '<p style="margin:0 0 16px;color:var(--dust)">Connect your Spotify to play your whole library on the site, and to choose which playlists visitors see on the laptop screen.</p><button class="btn primary" id="spConnect">Connect Spotify</button>';
+    $('#spConnect').onclick = () => connectSpotify(d.clientId, d.scopes);
+    return;
+  }
+  head.innerHTML = `<span class="sp-user">${d.user.image ? '<img alt="">' : ''}<span></span></span>`;
+  if (d.user.image) head.querySelector('img').src = d.user.image;
+  head.querySelector('span span').textContent = 'Connected as ' + d.user.name;
+  const shelf = d.shelf || { mode:'auto', playlists:[], links:[] };
+  body.innerHTML = `<p style="margin:0 0 4px;color:var(--dust)">On the site you'll see "My library" on the laptop screen and can play anything from it through the site's player. Visitors see these on the laptop; clicking one puts Spotify's player on the monitor:</p>
+    <div class="sp-modes" role="radiogroup" aria-label="Which playlists visitors see">
+      <label><input type="radio" name="spMode" value="auto"> Every public playlist I made</label>
+      <label><input type="radio" name="spMode" value="chosen"> Only the playlists I tick below</label>
+    </div>
+    <div class="sp-list" id="spList"></div>
+    <label for="spLinks">Also show these (paste Spotify links to songs, albums or your artist page, one per line)</label>
+    <textarea id="spLinks" placeholder="https://open.spotify.com/album/…"></textarea>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px"><button class="btn primary" id="spSave">Save</button><button class="btn" id="spDisconnect">Disconnect Spotify</button></div>
+    <p class="msg" id="spMsg"></p>`;
+  if (d.error) { $('#spMsg').textContent = d.error; $('#spMsg').className = 'msg bad'; }
+  body.querySelector(`input[value="${shelf.mode}"]`).checked = true;
+  $('#spLinks').value = (shelf.links || []).join('\n');
+  const list = $('#spList');
+  const render = () => {
+    const mode = body.querySelector('input[name=spMode]:checked').value;
+    list.innerHTML = '';
+    d.playlists.forEach(p => {
+      const auto = mode === 'auto', on = auto ? (p.public && p.mine === d.user.id) : shelf.playlists.includes(p.id);
+      const l = document.createElement('label'); l.className = on ? '' : 'off';
+      l.innerHTML = `<input type="checkbox" ${on ? 'checked' : ''} ${auto ? 'disabled' : ''}>${p.image ? '<img alt="">' : '<span class="ph"></span>'}<span><b></b><small></small></span>`;
+      if (p.image) l.querySelector('img').src = p.image;
+      l.querySelector('b').textContent = p.name;
+      l.querySelector('small').textContent = [p.count != null ? `${p.count} songs` : null, p.public ? 'public' : 'private: visitors can only see it if you make it public', p.mine === d.user.id ? null : 'by someone else'].filter(Boolean).join(' · ');
+      l.querySelector('input').onchange = (e) => {
+        shelf.playlists = shelf.playlists.filter(x => x !== p.id); if (e.target.checked) shelf.playlists.push(p.id);
+        l.className = e.target.checked ? '' : 'off';
+      };
+      list.appendChild(l);
+    });
+    if (!d.playlists.length) list.innerHTML = '<p class="empty">No playlists on this Spotify account yet.</p>';
+  };
+  body.querySelectorAll('input[name=spMode]').forEach(r => r.onchange = render);
+  render();
+  $('#spSave').onclick = async () => {
+    const mode = body.querySelector('input[name=spMode]:checked').value;
+    try {
+      await api('/api/spotify/settings', { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ mode, playlists: shelf.playlists, links: $('#spLinks').value.split('\n') }) });
+      $('#spMsg').textContent = 'Saved. The laptop screen updates for visitors straight away.'; $('#spMsg').className = 'msg good';
+    } catch (e) { $('#spMsg').textContent = e.message; $('#spMsg').className = 'msg bad'; }
+  };
+  const dis = $('#spDisconnect');
+  dis.onclick = async () => {
+    if (!dis.dataset.armed){ dis.dataset.armed = '1'; dis.textContent = 'Click again to disconnect'; setTimeout(() => { delete dis.dataset.armed; dis.textContent = 'Disconnect Spotify'; }, 4000); return; }
+    try { await api('/api/spotify/connect', { method:'DELETE' }); loadSpotify(); } catch (e) { $('#spMsg').textContent = e.message; $('#spMsg').className = 'msg bad'; }
+  };
+}
+
 /* ---------- stats ---------- */
 let range = 30;
 const nf = new Intl.NumberFormat();
 const regionName = (() => { try { const d = new Intl.DisplayNames(['en'], { type:'region' }); return (c) => (c === 'XX' || c === 'T1') ? 'Unknown' : (d.of(c) || c); } catch { return (c) => c; } })();
-const ROOM_NAME = { video:'Video', sound:'Sound', art:'Art', photos:'Photos', tees:'Tees', misc:'Misc', archive:'Archive', about:'About + guestbook' };
+const ROOM_NAME = { video:'Video', sound:'Sound', art:'Art', photos:'Photos', tees:'Tees', misc:'Misc', archive:'Archive', about:'About + guestbook', spotify:'Spotify (laptop)' };
 const fmtDay = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString(undefined, { day:'numeric', month:'short', timeZone:'UTC' });
 
 document.querySelectorAll('.range button').forEach(b => b.addEventListener('click', () => {

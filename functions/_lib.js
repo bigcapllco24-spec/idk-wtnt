@@ -37,6 +37,9 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS visits (
      day TEXT NOT NULL, visitor TEXT NOT NULL, PRIMARY KEY (day, visitor)
    )`,
+  `CREATE TABLE IF NOT EXISTS settings (
+     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+   )`,
   `CREATE TABLE IF NOT EXISTS notes (
      id TEXT PRIMARY KEY, name TEXT NOT NULL, body TEXT NOT NULL,
      visitor TEXT, created_at TEXT NOT NULL
@@ -174,4 +177,16 @@ export function deviceOf(request) {
   if (/ipad|tablet|(android(?!.*mobile))/i.test(ua)) return 'Tablet';
   if (/mobi|iphone|android/i.test(ua)) return 'Phone';
   return 'Computer';
+}
+
+// ---------- small key/value settings (Spotify tokens, choices, caches) ----------
+export async function getSetting(env, key) {
+  const row = await env.DB.prepare('SELECT value FROM settings WHERE key = ?').bind(key).first();
+  if (!row) return null;
+  try { return JSON.parse(row.value); } catch { return null; }
+}
+export async function setSetting(env, key, value) {
+  if (value === null || value === undefined) { await env.DB.prepare('DELETE FROM settings WHERE key = ?').bind(key).run(); return; }
+  await env.DB.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)')
+    .bind(key, JSON.stringify(value), new Date().toISOString()).run();
 }

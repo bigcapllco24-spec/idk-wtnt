@@ -35,6 +35,16 @@ Uploads are refused once stored files reach **9 GB** (set `STORAGE_LIMIT_GB` to 
 - Functions: 100 K requests per day.
 - Big files upload in 20 MB pieces, so music videos of any size work. Upload web-ready MP4 (H.264) for video and MP3/M4A for music; files are not converted.
 
+## Spotify (optional)
+
+Visitors see your chosen playlists on the laptop screen. Clicking one puts Spotify's own player on the monitor: full songs if they're logged into Spotify in that browser, otherwise 30-second previews, plus an "Open in Spotify" button. You (logged into /admin on the same device) also get a "My library" tab on the laptop that plays your playlists, liked songs and recently played through the site's own player. That part needs Spotify Premium.
+
+1. At developer.spotify.com/dashboard, create an app. Redirect URI: `https://idk-wtnt.pages.dev/admin/spotify.html`. Tick Web API and Web Playback SDK.
+2. Copy the app's Client ID. In Cloudflare Pages > idk-wtnt > Settings > Variables, add `SPOTIFY_CLIENT_ID` (plain text is fine, it isn't secret). Redeploy.
+3. In /admin, click Connect Spotify and choose what visitors see.
+
+Spotify keeps new apps in development mode: only you (the app owner) can log in through the site, which is all this needs. Visitors never log in here; they log in on Spotify's own player.
+
 ## Run locally
 
 ```

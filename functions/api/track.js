@@ -1,6 +1,6 @@
 import { bump, bumpStmt, dayOf, deviceOf, ensureSchema, handle, isBot, readJson, today, visitorId } from '../_lib.js';
 
-const ROOMS = ['video', 'sound', 'art', 'photos', 'tees', 'misc', 'archive', 'about'];
+const ROOMS = ['video', 'sound', 'art', 'photos', 'tees', 'misc', 'archive', 'about', 'spotify'];
 
 function referrerHost(ref, request) {
   try {

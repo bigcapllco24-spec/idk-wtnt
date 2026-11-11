@@ -81,6 +81,64 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
 #laptop figure{margin:0;display:flex;flex-direction:column;gap:18px}
 #laptop img{width:100%;flex:1;min-height:0;object-fit:cover;border-radius:12px}
 #laptop figcaption{font-size:28px;color:var(--dust)}
+/* laptop: Spotify panel */
+#laptop .lp-sp{display:none;flex-direction:column;gap:26px;height:100%;min-height:0}
+#laptop.sp .lp-default{display:none} #laptop.sp .lp-sp{display:flex}
+#laptop.sp{padding:56px 64px}
+.lp-top{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.lp-top h3{flex:1}
+.lp-tabs{display:flex;gap:12px}
+.lp-tabs button,.lp-sub button{height:60px;padding:0 26px;border-radius:30px;border:2px solid var(--edge);background:transparent;color:var(--dust);font-size:24px;cursor:pointer}
+.lp-tabs button[aria-pressed=true],.lp-sub button[aria-pressed=true]{border-color:var(--lamp);color:var(--lamp)}
+.lp-sub{display:flex;gap:10px}
+.lp-sub[hidden],.lp-tabs[hidden],.screenbar [hidden]{display:none}
+.lp-grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;align-content:start;padding-right:8px;scrollbar-width:thin}
+.lp-grid.rows{grid-template-columns:minmax(0,1fr);gap:6px}
+.lp-card{display:flex;flex-direction:column;gap:12px;padding:10px;border:0;border-radius:16px;background:transparent;color:var(--paper);text-align:left;cursor:pointer}
+.lp-card:hover,.lp-card:focus-visible{background:rgba(245,164,67,.1)}
+.lp-card img,.lp-card .ph{width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;background:#1B1816}
+.lp-card b{font-weight:400;font-size:27px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lp-card small{font-size:21px;color:var(--dim)}
+.lp-row{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:20px;align-items:center;padding:8px 12px;border:0;border-radius:12px;background:transparent;color:var(--paper);text-align:left;cursor:pointer}
+.lp-row:hover,.lp-row:focus-visible{background:rgba(245,164,67,.1)}
+.lp-row img,.lp-row .ph{width:76px;height:76px;border-radius:8px;object-fit:cover;background:#1B1816}
+.lp-row b{display:block;font-weight:400;font-size:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lp-row small{font-size:21px;color:var(--dim)}
+.lp-row .r{font-size:20px;color:var(--dim);font-family:var(--mono)}
+.lp-hint{margin:0;font-size:22px;color:var(--dim)}
+.lp-empty{grid-column:1/-1;font-size:26px;color:var(--dim);padding:20px 0}
+/* monitor: Spotify's own player */
+#monitor .mon-embed{position:absolute;inset:0;display:none;background:#121212}
+#monitor .mon-embed iframe{display:block;width:100%;height:100%;border:0}
+#monitor.embed .mon-embed{display:block}
+#monitor.embed .inner,#monitor.embed .bar{display:none}
+#monitor.embed::after{background:linear-gradient(115deg,rgba(255,255,255,.05),rgba(255,255,255,0) 38%)}
+.screen::after{pointer-events:none}
+/* screen mode: the camera fills the window with one screen */
+.screen.active{pointer-events:auto}
+body.screen-mode .hs,body.screen-mode .edge{opacity:0;pointer-events:none}
+body.screen-mode .wall{opacity:0}
+.screenbar{position:fixed;left:50%;top:76px;translate:-50% 0;z-index:33;display:none;gap:10px;flex-wrap:wrap;justify-content:center}
+body.screen-mode .screenbar{display:flex}
+.screenbar .back{background:rgba(13,11,9,.82);backdrop-filter:blur(8px)}
+.screenbar a.back{text-decoration:none}
+.screenbar a.back svg{stroke:var(--paper)}
+@media (max-aspect-ratio: 1/1){
+  .screenbar{top:70px;gap:8px;width:calc(100% - 24px)}
+  .screenbar .back{height:40px;padding:0 14px 0 10px;font-size:14px}
+  /* phones see the screens small, so the laptop uses bigger type and fewer columns */
+  #laptop.sp{padding:48px 56px}
+  .lp-top h3{font-size:84px}
+  .lp-tabs button,.lp-sub button{height:104px;padding:0 40px;border-radius:52px;font-size:44px}
+  .lp-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:36px}
+  .lp-card b{font-size:52px} .lp-card small{font-size:42px}
+  .lp-row{grid-template-columns:140px minmax(0,1fr) auto}
+  .lp-row img,.lp-row .ph{width:140px;height:140px}
+  .lp-row b{font-size:52px} .lp-row small,.lp-row .r{font-size:40px}
+  .lp-hint,.lp-empty{font-size:42px}
+  /* Spotify's player renders at half size and is scaled up, so its text stays readable */
+  #monitor .mon-embed iframe{width:50%;height:50%;transform:scale(2);transform-origin:0 0}
+}
 .spill{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:.25;transition:opacity .6s ease;border-radius:50%}
 body.lights-off .spill{opacity:.9}
 .spill.mon{left:-8%;top:2%;width:58%;height:58%;background:radial-gradient(closest-side,rgba(80,170,200,.32),rgba(80,170,200,0))}
@@ -286,15 +344,25 @@ body.intro .player{transform:translateY(110%)}
         <span class="title">Midnight Drive, official video</span>
       </div>
       <div class="bar"><span></span></div>
+      <div class="mon-embed" id="monEmbed"></div>
     </div>
 
     <div class="screen" id="laptop" aria-hidden="true">
+      <div class="lp-sp" aria-label="Spotify">
+        <div class="lp-top"><h3 id="lpTitle">On Spotify</h3>
+          <div class="lp-tabs" id="lpTabs" hidden><button data-tab="shelf" aria-pressed="true">For visitors</button><button data-tab="library" aria-pressed="false">My library</button></div></div>
+        <div class="lp-sub" id="lpSub" hidden><button data-sub="playlists" aria-pressed="true">Playlists</button><button data-sub="liked" aria-pressed="false">Liked songs</button><button data-sub="recent" aria-pressed="false">Recently played</button></div>
+        <div class="lp-grid" id="lpGrid"></div>
+        <p class="lp-hint" id="lpHint">Pick one to play it on the monitor.</p>
+      </div>
+      <div class="lp-default">
       <header><h3>Recent uploads</h3><span>View all</span></header>
       <div class="tiles">
         <figure><img src="img/mech.jpg" alt=""><figcaption>LEGO mech</figcaption></figure>
         <figure><img src="img/pour.jpg" alt=""><figcaption>numb.world</figcaption></figure>
         <figure><img src="img/crane.jpg" alt=""><figcaption>Paper crane</figcaption></figure>
         <figure><img src="img/astro.jpg" alt=""><figcaption>Astronaut</figcaption></figure>
+      </div>
       </div>
     </div>
 
@@ -304,12 +372,12 @@ body.intro .player{transform:translateY(110%)}
     </div>
 
     <!-- Hotspots. Positions are % of the photo, so they stay glued to the objects at any size. -->
-    <button class="hs quad" data-go="video" data-screen="monitor" style="inset:0;clip-path:polygon(0.3% 13.8%,41.8% 11.07%,41.8% 36.27%,6.1% 44.8%);--dx:24%;--dy:25%" aria-label="Monitor: open Video">
+    <button class="hs quad" data-focus="monitor" data-screen="monitor" style="inset:0;clip-path:polygon(0.3% 13.8%,41.8% 11.07%,41.8% 36.27%,6.1% 44.8%);--dx:24%;--dy:25%" aria-label="Monitor: open Video">
       <span class="dot"></span><span class="tag"><b>Video</b><small>the monitor</small></span></button>
     <button class="hs" data-go="photos" style="left:18%;top:6.4%;width:6.6%;height:5.2%" aria-label="Webcam: open Photos">
       <span class="dot"></span><span class="tag"><b>Photos</b><small>the webcam</small></span></button>
-    <button class="hs" data-go="archive" data-screen="laptop" style="left:44.2%;top:34.2%;width:17.8%;height:16%" aria-label="Laptop: open the Archive">
-      <span class="dot"></span><span class="tag"><b>Archive</b><small>everything, newest first</small></span></button>
+    <button class="hs" data-focus="laptop" data-screen="laptop" style="left:44.2%;top:34.2%;width:17.8%;height:16%" aria-label="Laptop: open the Archive" id="laptopHs">
+      <span class="dot"></span><span class="tag"><b id="laptopTag">Archive</b><small id="laptopSub">everything, newest first</small></span></button>
     <button class="hs" data-go="sound" style="left:1%;top:47%;width:15%;height:52%;--dy:62%" aria-label="Guitar: open Sound">
       <span class="dot"></span><span class="tag up"><b>Sound</b><small>the guitar</small></span></button>
     <button class="hs" data-go="sound" style="left:36.6%;top:73.2%;width:26%;height:16.3%" aria-label="AKAI keys: open Sound">
@@ -334,6 +402,11 @@ body.intro .player{transform:translateY(110%)}
 </main>
 
 <div class="hint" id="hint" aria-hidden="true">Drag to look around</div>
+<div class="screenbar" id="screenBar">
+  <button class="back" id="screenBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to desk</button>
+  <button class="back" id="toLaptop" hidden>Pick another</button>
+  <a class="back" id="openSpotify" href="#" target="_blank" rel="noopener" hidden>Open in Spotify<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg></a>
+</div>
 <div class="fade" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
@@ -489,6 +562,14 @@ function go(room){
 function back(){
   if (!inRoom) return;
   const was = inRoom; inRoom = null;
+  if (String(was).startsWith('screen')){
+    body.classList.remove('screen-mode');
+    document.querySelectorAll('.screen.active').forEach(e => { e.classList.remove('active'); e.setAttribute('aria-hidden', 'true'); });
+    scene.style.setProperty('--px', '0px'); scene.style.setProperty('--py', '0px'); scene.style.setProperty('--s', 1);
+    history.replaceState(null, '', location.pathname + location.search);
+    const hs = document.querySelector(`[data-focus="${was.slice(7)}"]`); if (hs) hs.focus({ preventScroll:true });
+    return;
+  }
   pauseVideos();
   body.classList.remove('in-room');
   $('#room').setAttribute('aria-hidden', 'true');
@@ -502,6 +583,7 @@ document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', 
   if (inRoom){ back(); setTimeout(() => go(r), reduce ? 0 : 750); } else go(r);
 }));
 $('#backBtn').addEventListener('click', back);
+$('#screenBack').addEventListener('click', back);
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') back();
   if (e.code === 'Space' && !/INPUT|BUTTON|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); togglePlay(); }
@@ -532,10 +614,14 @@ document.querySelector('[data-act="play"]').addEventListener('click', () => togg
    ========================================================= */
 const audio = $('#audio'), canvas = $('#wave'), ctx = canvas.getContext('2d');
 let idx = 0, playing = false, simT = 0, simTimer = null, peaks = [];
+let SRC = 'local';            // 'local' = your uploads, 'spotify' = your Spotify library (owner only)
+const SP = { pos:0, dur:0, paused:true, ts:0, id:'' };
+let spPlayer = null;
+const spPos = () => SP.paused ? SP.pos : Math.min(SP.dur, SP.pos + (Date.now() - SP.ts) / 1000);
 const fmt = (s) => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
 const track = () => TRACKS[idx];
-const duration = () => track().src ? (audio.duration || track().length) : track().length;
-const position = () => track().src ? audio.currentTime : simT;
+const duration = () => SRC === 'spotify' ? SP.dur : (track().src ? (audio.duration || track().length) : track().length);
+const position = () => SRC === 'spotify' ? spPos() : (track().src ? audio.currentTime : simT);
 
 function fakePeaks(seed, n=200){
   const out=[]; let h=0; for (const ch of seed) h = (h*31 + ch.charCodeAt(0)) >>> 0;
@@ -566,6 +652,7 @@ function draw(){
   canvas.setAttribute('aria-valuenow', Math.round(prog*100));
 }
 function load(i, autoplay){
+  if (SRC === 'spotify'){ SRC = 'local'; if (spPlayer) spPlayer.pause(); $('#likeBtn').disabled = false; }
   idx = (i + TRACKS.length) % TRACKS.length; simT = 0;
   const t = track();
   $('#trackTitle').textContent = t.title; $('#trackArtist').textContent = t.artist; $('#cover').src = t.cover;
@@ -578,6 +665,8 @@ function load(i, autoplay){
 }
 function tick(){ simT += .25; if (simT >= duration()) return load(idx+1, true); draw(); }
 function play(){
+  if (SRC === 'spotify'){ if (spPlayer) spPlayer.resume(); return; }
+  resetEmbed();
   playing = true; $('#player').classList.add('playing'); $('#playBtn').setAttribute('aria-label','Pause');
   pauseVideos();
   const t = track();
@@ -587,12 +676,14 @@ function play(){
   } else { clearInterval(simTimer); simTimer = setInterval(tick, 250); }
 }
 function pause(){
+  if (SRC === 'spotify'){ if (spPlayer) spPlayer.pause(); return; }
   playing = false; $('#player').classList.remove('playing'); $('#playBtn').setAttribute('aria-label','Play');
   audio.pause(); clearInterval(simTimer);
 }
-function togglePlay(){ playing ? pause() : play(); }
+function togglePlay(){ if (SRC === 'spotify'){ if (spPlayer) spPlayer.togglePlay(); return; } playing ? pause() : play(); }
 function seekTo(frac){
   frac = Math.min(1, Math.max(0, frac));
+  if (SRC === 'spotify'){ if (spPlayer){ spPlayer.seek(Math.round(frac * SP.dur * 1000)); SP.pos = frac * SP.dur; SP.ts = Date.now(); draw(); } return; }
   if (track().src && audio.duration) audio.currentTime = frac * audio.duration; else simT = frac * duration();
   draw();
 }
@@ -600,10 +691,10 @@ audio.addEventListener('timeupdate', () => { draw(); if (audio.currentTime > 5) 
 audio.addEventListener('loadedmetadata', draw);
 audio.addEventListener('ended', () => load(idx+1, true));
 $('#playBtn').addEventListener('click', togglePlay);
-$('#nextBtn').addEventListener('click', () => load(idx+1, playing));
-$('#prevBtn').addEventListener('click', () => position() > 3 ? seekTo(0) : load(idx-1, playing));
-$('#vol').addEventListener('input', (e) => audio.volume = e.target.value);
-$('#likeBtn').addEventListener('click', () => toggleLike(track()));
+$('#nextBtn').addEventListener('click', () => SRC === 'spotify' ? spPlayer && spPlayer.nextTrack() : load(idx+1, playing));
+$('#prevBtn').addEventListener('click', () => SRC === 'spotify' ? spPlayer && spPlayer.previousTrack() : (position() > 3 ? seekTo(0) : load(idx-1, playing)));
+$('#vol').addEventListener('input', (e) => { audio.volume = e.target.value; if (spPlayer) spPlayer.setVolume(Number(e.target.value)); });
+$('#likeBtn').addEventListener('click', () => { if (SRC !== 'spotify') toggleLike(track()); });
 let dragging = false;
 const seekFromEvent = (e) => { const r = canvas.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width); };
 canvas.addEventListener('pointerdown', (e) => { dragging = true; canvas.setPointerCapture(e.pointerId); seekFromEvent(e); });
@@ -821,8 +912,216 @@ function sendStat(data){
 }
 sendStat({ type:'pageview', ref: document.referrer });
 
+/* =========================================================
+   SPOTIFY
+   Visitors: your chosen playlists on the laptop; clicking one puts
+   Spotify's own player on the monitor (full songs if they're logged
+   into Spotify, otherwise 30-second previews).
+   You (logged into /admin on this device): "My library" on the laptop,
+   played through this site's player with Spotify's Web Playback SDK.
+   ========================================================= */
+let SHELF = [], embedItem = null, OWNER_SP = false;
+let ownerPw = ''; try { ownerPw = localStorage.getItem('idk-pw') || sessionStorage.getItem('idk-pw') || ''; } catch {}
+const TYPE_LABEL = { playlist:'Playlist', album:'Album', track:'Song', artist:'Artist', episode:'Episode', show:'Podcast' };
+
+function baseRect(){
+  const W = scene.offsetWidth, H = scene.offsetHeight;
+  if (portrait()) return { left: -stage.scrollLeft, top: 0, width: W, height: H };
+  return { left: innerWidth / 2 - W / 2, top: innerHeight / 2 - H / 2, width: W, height: H };
+}
+function focusScreen(id){
+  if (inRoom && !String(inRoom).startsWith('screen')){ back(); setTimeout(() => focusScreen(id), reduce ? 0 : 700); return; }
+  const q = QUADS[id], xs = q.map(p => p[0]), ys = q.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, r = baseRect();
+  const bw = r.width * (x1 - x0) / 100, bh = r.height * (y1 - y0) / 100;
+  const topSpace = portrait() ? 120 : 132, botSpace = portrait() ? 150 : 100;
+  const availW = innerWidth * (portrait() ? 0.96 : 0.9), availH = innerHeight - topSpace - botSpace;
+  const s = Math.min(availW / bw, availH / bh);
+  const oxl = r.width * cx / 100, oyl = r.height * cy / 100;
+  // where the scene's top-left corner lands once scaled, kept so the photo still covers the window
+  let L = innerWidth / 2 - s * oxl, T = topSpace + availH / 2 - s * oyl;
+  const W = r.width * s, H = r.height * s;
+  if (W >= innerWidth) L = Math.min(0, Math.max(innerWidth - W, L));
+  if (H >= innerHeight) T = Math.min(0, Math.max(innerHeight - H, T));
+  else T = innerHeight - H;   // zoomed out on a phone: sit the photo on the bottom edge
+  scene.classList.remove('drift');
+  scene.style.setProperty('--ox', cx + '%'); scene.style.setProperty('--oy', cy + '%');
+  scene.style.setProperty('--px', (L + s * oxl - r.left - oxl) + 'px');
+  scene.style.setProperty('--py', (T + s * oyl - r.top - oyl) + 'px');
+  scene.style.setProperty('--s', s);
+  document.querySelectorAll('.screen').forEach(e => { const on = e.id === id; e.classList.toggle('active', on); e.setAttribute('aria-hidden', String(!on)); });
+  inRoom = 'screen-' + id;
+  body.classList.add('screen-mode');
+  $('#openSpotify').hidden = !(id === 'monitor' && embedItem);
+  $('#toLaptop').hidden = id !== 'monitor';
+  if (id === 'monitor' && embedItem) $('#openSpotify').href = embedItem.url;
+  history.replaceState(null, '', '#' + (id === 'laptop' ? 'listen' : 'listen-now'));
+  sendStat({ type:'room', room:'spotify' });
+  setTimeout(() => $('#screenBack').focus({ preventScroll:true }), reduce ? 0 : 900);
+}
+$('#toLaptop').addEventListener('click', () => focusScreen('laptop'));
+
+// the two hotspots decide where to go based on what's available
+document.querySelector('[data-focus="laptop"]').addEventListener('click', () => {
+  if ($('#laptop').classList.contains('sp')) focusScreen('laptop'); else go('archive');
+});
+document.querySelector('[data-focus="monitor"]').addEventListener('click', () => {
+  if (embedItem) focusScreen('monitor'); else go('video');
+});
+
+function openOnMonitor(item){
+  embedItem = item;
+  const box = $('#monEmbed'); box.innerHTML = '';
+  const f = document.createElement('iframe');
+  f.src = `https://open.spotify.com/embed/${item.type}/${item.id}?utm_source=idk-wtnt&theme=0`;
+  f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+  f.title = `Spotify player: ${item.name}`;
+  f.loading = 'eager';
+  box.appendChild(f);
+  $('#monitor').classList.add('embed');
+  if (SRC === 'local' && playing) pause();
+  focusScreen('monitor');
+}
+// starting your own music stops whatever Spotify's player on the monitor is doing
+function resetEmbed(){
+  const f = document.querySelector('#monEmbed iframe');
+  if (f) f.src = f.src;
+}
+
+function card(item, onClick){
+  const b = document.createElement('button'); b.className = 'lp-card';
+  b.innerHTML = (item.image ? '<img alt="" loading="lazy">' : '<span class="ph"></span>') + '<b></b><small></small>';
+  if (item.image) b.querySelector('img').src = item.image;
+  b.querySelector('b').textContent = item.name;
+  b.querySelector('small').textContent = item.sub;
+  b.addEventListener('click', onClick);
+  return b;
+}
+function row(item, onClick){
+  const b = document.createElement('button'); b.className = 'lp-row';
+  b.innerHTML = (item.image ? '<img alt="" loading="lazy">' : '<span class="ph"></span>') + '<span><b></b><small></small></span><span class="r"></span>';
+  if (item.image) b.querySelector('img').src = item.image;
+  b.querySelector('b').textContent = item.name; b.querySelector('small').textContent = item.sub; b.querySelector('.r').textContent = item.right || '';
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+let lpTab = 'shelf', lpSub = 'playlists';
+const SPLIB = {};
+async function renderLaptop(){
+  const grid = $('#lpGrid'); grid.innerHTML = ''; grid.classList.remove('rows');
+  $('#lpTabs').hidden = !OWNER_SP;
+  $('#lpSub').hidden = lpTab !== 'library';
+  document.querySelectorAll('#lpTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === lpTab)));
+  document.querySelectorAll('#lpSub button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sub === lpSub)));
+  if (lpTab === 'shelf'){
+    $('#lpTitle').textContent = 'On Spotify';
+    $('#lpHint').textContent = 'Pick one to play it on the monitor. Log into Spotify there for full songs.';
+    if (!SHELF.length){ const p = document.createElement('p'); p.className = 'lp-empty'; p.textContent = OWNER_SP ? 'Choose what visitors see here in your dashboard, under Spotify.' : 'Nothing here yet.'; grid.appendChild(p); return; }
+    SHELF.forEach(it => grid.appendChild(card({ ...it, sub: it.type === 'playlist' && it.count != null ? `${it.count} songs` : (it.by || TYPE_LABEL[it.type] || '') }, () => openOnMonitor(it))));
+    return;
+  }
+  $('#lpTitle').textContent = 'My library';
+  $('#lpHint').textContent = 'Only you see this tab. Songs play through the player at the bottom.';
+  const loading = document.createElement('p'); loading.className = 'lp-empty'; loading.textContent = 'Loading your Spotify…'; grid.appendChild(loading);
+  try {
+    if (lpSub === 'playlists'){
+      SPLIB.playlists = SPLIB.playlists || (await spApiJson('/me/playlists?limit=50')).items.filter(Boolean);
+      grid.innerHTML = '';
+      SPLIB.playlists.forEach(pl => grid.appendChild(card({ name: pl.name, image: pl.images?.[0]?.url, sub: (pl.items?.total ?? pl.tracks?.total) != null ? `${pl.items?.total ?? pl.tracks?.total} songs` : 'Playlist' },
+        () => playSpotify({ context_uri: pl.uri }))));
+      if (!SPLIB.playlists.length) grid.innerHTML = '<p class="lp-empty">No playlists yet.</p>';
+    } else {
+      const path = lpSub === 'liked' ? '/me/tracks?limit=50' : '/me/player/recently-played?limit=50';
+      SPLIB[lpSub] = SPLIB[lpSub] || (await spApiJson(path)).items.map(x => x.track).filter(Boolean);
+      grid.innerHTML = ''; grid.classList.add('rows');
+      const list = SPLIB[lpSub], uris = list.map(t => t.uri);
+      list.forEach((t, i) => grid.appendChild(row({ name: t.name, image: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url, sub: t.artists.map(a => a.name).join(', '), right: fmt(t.duration_ms / 1000) },
+        () => playSpotify({ uris, offset: { position: i } }))));
+      if (!list.length) grid.innerHTML = '<p class="lp-empty">Nothing here yet.</p>';
+    }
+  } catch (e) { grid.innerHTML = ''; const p = document.createElement('p'); p.className = 'lp-empty'; p.textContent = e.message; grid.appendChild(p); }
+}
+document.querySelectorAll('#lpTabs button').forEach(b => b.addEventListener('click', () => { lpTab = b.dataset.tab; renderLaptop(); }));
+document.querySelectorAll('#lpSub button').forEach(b => b.addEventListener('click', () => { lpSub = b.dataset.sub; renderLaptop(); }));
+
+function laptopIsSpotify(){
+  const on = SHELF.length > 0 || OWNER_SP;
+  $('#laptop').classList.toggle('sp', on);
+  $('#laptopTag').textContent = on ? 'Spotify' : 'Archive';
+  $('#laptopSub').textContent = on ? 'the laptop, playlists and songs' : 'everything, newest first';
+  $('#laptopHs').setAttribute('aria-label', on ? 'Laptop: browse Spotify playlists' : 'Laptop: open the Archive');
+  if (on) renderLaptop();
+}
+api.get('/api/spotify/public').then(d => { SHELF = d.items || []; laptopIsSpotify(); }).catch(() => {});
+
+/* ---------- your own library (owner only) ---------- */
+let spTok = null;
+async function spToken(){
+  if (spTok && spTok.expires > Date.now() + 60000) return spTok.token;
+  const r = await fetch('/api/spotify/token', { headers: { authorization: 'Bearer ' + ownerPw } });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Spotify is not connected.');
+  spTok = await r.json(); return spTok.token;
+}
+async function spApi(path, opts = {}){
+  return fetch('https://api.spotify.com/v1' + path, { ...opts, headers: { authorization: 'Bearer ' + await spToken(), 'content-type': 'application/json', ...(opts.headers || {}) } });
+}
+async function spApiJson(path){
+  const r = await spApi(path); const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message ? 'Spotify said: ' + d.error.message : 'Spotify did not answer. Try again.');
+  return d;
+}
+let spDevice = null, spReadyResolve; const spReady = new Promise(res => spReadyResolve = res);
+function startSdk(){
+  window.onSpotifyWebPlaybackSDKReady = () => {
+    spPlayer = new Spotify.Player({ name: 'idk∗wtnt desk', volume: Number($('#vol').value), getOAuthToken: cb => spToken().then(cb).catch(() => {}) });
+    spPlayer.addListener('ready', ({ device_id }) => { spDevice = device_id; spReadyResolve(true); });
+    spPlayer.addListener('not_ready', () => { spDevice = null; });
+    ['initialization_error', 'authentication_error', 'account_error', 'playback_error'].forEach(ev =>
+      spPlayer.addListener(ev, ({ message }) => { console.warn('Spotify', ev, message); $('#lpHint').textContent = ev === 'account_error' ? 'Spotify needs Premium to play here.' : 'Spotify: ' + message; }));
+    spPlayer.addListener('player_state_changed', onSpState);
+    spPlayer.connect();
+  };
+  const sc = document.createElement('script'); sc.src = 'https://sdk.scdn.co/spotify-player.js'; sc.async = true; document.body.appendChild(sc);
+}
+async function playSpotify(body){
+  $('#lpHint').textContent = 'Starting on the site player…';
+  try {
+    if (!spPlayer) throw new Error('Spotify player is still loading. Try again in a second.');
+    await spPlayer.activateElement();
+    await Promise.race([spReady, new Promise((_, no) => setTimeout(() => no(new Error('Spotify player did not start. Reload the page and try again.')), 8000))]);
+    let r = await spApi(`/me/player/play?device_id=${spDevice}`, { method:'PUT', body: JSON.stringify(body) });
+    if (r.status === 404){
+      await spApi('/me/player', { method:'PUT', body: JSON.stringify({ device_ids: [spDevice], play: false }) });
+      await new Promise(res => setTimeout(res, 700));
+      r = await spApi(`/me/player/play?device_id=${spDevice}`, { method:'PUT', body: JSON.stringify(body) });
+    }
+    if (!r.ok && r.status !== 204){ const d = await r.json().catch(() => ({})); throw new Error(d.error?.message ? 'Spotify said: ' + d.error.message : 'Spotify would not play that.'); }
+    if (SRC === 'local'){ audio.pause(); clearInterval(simTimer); }
+    SRC = 'spotify'; $('#likeBtn').disabled = true; resetEmbed();
+    $('#lpHint').textContent = 'Playing through the player below.';
+  } catch (e) { $('#lpHint').textContent = e.message; }
+}
+function onSpState(state){
+  if (!state || SRC !== 'spotify') return;
+  const t = state.track_window.current_track;
+  Object.assign(SP, { pos: state.position / 1000, dur: state.duration / 1000, paused: state.paused, ts: Date.now(), id: t.id || t.uri });
+  playing = !state.paused;
+  $('#player').classList.toggle('playing', playing); $('#playBtn').setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  $('#trackTitle').textContent = t.name; $('#trackArtist').textContent = t.artists.map(a => a.name).join(', ') + ' · Spotify';
+  const img = t.album.images[0]?.url; if (img && $('#cover').src !== img) $('#cover').src = img;
+  peaks = fakePeaks(SP.id); draw();
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: t.artists.map(a => a.name).join(', '), artwork: img ? [{ src: img, sizes: '640x640', type: 'image/jpeg' }] : [] });
+}
+setInterval(() => { if (SRC === 'spotify' && !SP.paused) draw(); }, 500);
+if (ownerPw){
+  spToken().then(() => { OWNER_SP = true; laptopIsSpotify(); startSdk(); }).catch(() => {});
+}
+
 /* deep links: idk-wtnt.art/#sound opens straight into a room */
 if (location.hash && CAM[location.hash.slice(1)]) setTimeout(() => go(location.hash.slice(1)), 2600);
+if (location.hash === '#listen') setTimeout(() => { if ($('#laptop').classList.contains('sp')) focusScreen('laptop'); }, 2600);
 addEventListener('hashchange', () => { const r = location.hash.slice(1); if (CAM[r] && r !== inRoom) go(r); else if (!r) back(); });
 </script>
 </body>
