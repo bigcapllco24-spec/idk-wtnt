@@ -36,7 +36,9 @@ button{font:inherit;color:inherit}
   container-type:size;
 }
 .scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
-.backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(36px) brightness(.42) saturate(.9);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
+.scene.fit .edge{right:7.6%}   /* keep the wardrobe tab clear of the faded edge */
+.scene.fit{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}
+.backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(40px) brightness(.5) saturate(.95);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
 body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08) saturate(.6)}
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
 .photo{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;
@@ -536,16 +538,27 @@ function mapQuad(el, q){
 }
 function layout(){ for (const id in QUADS) mapQuad(document.getElementById(id), QUADS[id]); }
 addEventListener('resize', layout);
-/* the photo always fills the window; when the window is wide and short, some of the photo has to be
-   cropped, so keep the band from the monitor's top edge to the keys in view, or the top part if it can't all fit */
+/* desktop: the photo is as big as it can be while the whole desk, from the top of the monitor
+   to the keyboard, stays on screen. If that leaves room at the sides, the photo's edges fade
+   into the blurred room behind it instead of ending in a hard line. Phones scroll sideways instead. */
+const BAND = [.1, .9];    // the part of the photo that must stay in view (top of monitor → keyboard)
 function frameScene(){
-  if (portrait()){ scene.style.removeProperty('--ty'); scene.style.removeProperty('--vt'); return; }
-  const H = scene.offsetHeight, vh = innerHeight, avail = vh - 72;   // 72 = the player bar
-  const b0 = .09 * H, b1 = .9 * H;
-  let T = (b1 - b0 <= avail) ? avail / 2 - (b0 + b1) / 2 : -b0;
-  T = Math.min(-10, Math.max(vh - H + 10, T));
+  if (portrait()){
+    ['width', 'height', '--ty', '--vt'].forEach(k => scene.style.removeProperty(k));
+    scene.classList.remove('fit'); return;
+  }
+  const vw = innerWidth, vh = innerHeight, avail = vh - 72 - 16;   // 72 = the player bar
+  const coverH = (vw + 32) * .75;                   // fills the width
+  const fitH = avail / (BAND[1] - BAND[0]);         // the whole desk just fits
+  const H = Math.max(Math.min(coverH, fitH), vh * .8);
+  const W = H * 4 / 3;
+  scene.style.width = W.toFixed(1) + 'px'; scene.style.height = H.toFixed(1) + 'px';
+  scene.classList.toggle('fit', W < vw + 2);
+  let T = 8 + avail / 2 - (BAND[0] + BAND[1]) / 2 * H;
+  T = H >= vh ? Math.min(0, Math.max(vh - H, T)) : (vh - H) / 2;
   scene.style.setProperty('--ty', T.toFixed(1) + 'px');
   scene.style.setProperty('--vt', (-T).toFixed(1) + 'px');
+  layout();
 }
 frameScene();
 addEventListener('resize', frameScene);
