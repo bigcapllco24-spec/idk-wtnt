@@ -235,6 +235,8 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 .mon-wip .quote{position:absolute;left:0;right:0;bottom:74px;text-align:center;font:34px 'Gochi Hand',cursive}
 .mon-wip .foot{position:absolute;bottom:40px;font-size:18px;color:var(--os-dim)}
 .mon-wip .fl{left:72px} .mon-wip .fr{right:72px}
+/* paper doesn't have scanlines: keep only a soft glare on the glass */
+#laptop::after,#monitor::after{background:linear-gradient(115deg,rgba(255,255,255,.06),rgba(255,255,255,0) 38%)}
 #monitor .mon-now{background:var(--os-bg)}
 #monitor .mon-now,#monitor .mn-main p{color:var(--os-ink)}
 #monitor .mn-main small{color:var(--os-ink);font-family:'Special Elite',monospace}
