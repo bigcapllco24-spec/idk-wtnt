@@ -139,22 +139,22 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
 #monitor.app .inner,#monitor.app .bar,#monitor.app .mon-embed,#monitor.app .mon-now{display:none}
 
 /* ---------- WIP: ink on paper with the lights on, chalk on black with them off ---------- */
-#laptop,#monitor{--os-bg:#F7F5F0;--os-ink:#111111;--os-dim:#55524C;--os-line:url(#wipInk);--os-hatch:#111111}
+#laptop,#monitor{--os-r:22px 30px 18px 26px / 26px 18px 30px 22px;--os-bg:#F7F5F0;--os-ink:#111111;--os-dim:#55524C;--os-line:url(#wipInk);--os-hatch:#111111}
 body.lights-off #laptop,body.lights-off #monitor{--os-bg:#0E0E0D;--os-ink:#EDEBE6;--os-dim:#A8A49C;--os-line:url(#wipChalk);--os-hatch:#EDEBE6}
 .sk{position:relative}
-.sk::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:22px;filter:var(--os-line);pointer-events:none}
+.sk::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:var(--os-r);box-shadow:3px 4px 0 -1px var(--os-bg),4px 5px 0 0 var(--os-ink);pointer-events:none}
 #laptop{background:var(--os-bg);color:var(--os-ink);font-family:'Special Elite',var(--mono)}
 #laptop .os-bar{border:0;font-family:'Special Elite',var(--mono)}
-#laptop .os-bar::after{content:"";position:absolute;left:48px;right:48px;bottom:0;height:2.5px;background:var(--os-ink);filter:var(--os-line)}
+#laptop .os-bar::after{content:"";position:absolute;left:48px;right:48px;bottom:0;height:2.5px;background:var(--os-ink)}
 #laptop .os-bar .os-name{color:var(--os-ink);font:24px 'Special Elite',monospace;letter-spacing:.02em}
 #laptop .os-bar .os-name i{font:28px 'Gochi Hand',cursive;font-style:normal;color:var(--os-dim);margin-left:12px}
 #laptop .os-bar .os-right{font:22px 'Special Elite',monospace;color:var(--os-ink)}
 #laptop .os-now{background:none;padding:0;font:22px 'Special Elite',monospace;color:var(--os-dim);height:auto}
 #laptop .os-now i{display:none}
 .os-mode{position:relative;display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;border:0;background:none;color:var(--os-ink);font:20px 'Special Elite',monospace;cursor:pointer}
-.os-mode::before{content:"";position:absolute;inset:0;border:2.5px solid var(--os-ink);border-radius:24px;filter:var(--os-line)}
+.os-mode::before{content:"";position:absolute;inset:0;border:2.5px solid var(--os-ink);border-radius:24px}
 .os-mode .sw{position:relative;width:44px;height:22px}
-.os-mode .sw::before{content:"";position:absolute;inset:0;border:2px solid var(--os-ink);border-radius:11px;filter:var(--os-line)}
+.os-mode .sw::before{content:"";position:absolute;inset:0;border:2px solid var(--os-ink);border-radius:11px}
 .os-mode .sw::after{content:"";position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:7px;background:var(--os-ink);transition:left .3s ease}
 body.lights-off .os-mode .sw::after{left:26px}
 .os-mode .l{opacity:1} .os-mode .d{opacity:.45}
@@ -165,17 +165,17 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #laptop .os-label{font:24px 'Special Elite',monospace;color:var(--os-ink);letter-spacing:.02em}
 #laptop .os-label small{font:30px 'Gochi Hand',cursive;color:var(--os-dim)}
 #laptop .os-card{background:none;border:0;border-radius:22px;color:var(--os-ink);height:184px}
-#laptop .os-card::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:22px;filter:var(--os-line);pointer-events:none}
+#laptop .os-card::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:var(--os-r);box-shadow:3px 4px 0 -1px var(--os-bg),4px 5px 0 0 var(--os-ink);pointer-events:none}
 #laptop .os-card{position:relative}
 #laptop .os-card .ic,#laptop .os-card .ic.small{background:none;width:112px;height:112px}
 #laptop .os-card .ic.small{width:84px;height:84px}
-#laptop .os-card .ic svg{width:100%;height:100%;stroke:var(--os-ink);stroke-width:1.6;filter:var(--os-line)}
+#laptop .os-card .ic svg{width:100%;height:100%;stroke:var(--os-ink);stroke-width:1.6}
 #laptop .os-card b{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:58px}
 #laptop .os-card.small b{font-size:46px}
 #laptop .os-card small{font:24px 'Special Elite',monospace;color:var(--os-dim)}
 #laptop .os-game{color:var(--os-ink)}
 #laptop .os-game .art{background:none;border:0;border-radius:6px;color:var(--os-dim);font:26px 'Special Elite',monospace}
-#laptop .os-game .art::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:6px;filter:var(--os-line)}
+#laptop .os-game .art::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:6px}
 #laptop .os-game.soon .art::before{border:2.5px dashed var(--os-ink)}
 #laptop .os-game .art.hatch{background-image:repeating-linear-gradient(45deg,var(--os-hatch) 0 2px,transparent 2px 10px)}
 #laptop .os-game .art.cross{background-image:repeating-linear-gradient(45deg,var(--os-hatch) 0 1.5px,transparent 1.5px 10px),repeating-linear-gradient(-45deg,var(--os-hatch) 0 1.5px,transparent 1.5px 10px)}
@@ -186,16 +186,16 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #laptop .os-game:hover .art::before,#laptop .os-card:hover::before{border-width:4px}
 .os-strip{position:absolute;left:56px;right:56px;bottom:22px;display:flex;justify-content:space-between;font:19px 'Special Elite',monospace;color:var(--os-dim)}
 #laptop .os-win{background:none;border:0;position:relative}
-#laptop .os-win::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:22px;filter:var(--os-line);pointer-events:none}
+#laptop .os-win::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:var(--os-r);box-shadow:3px 4px 0 -1px var(--os-bg),4px 5px 0 0 var(--os-ink);pointer-events:none}
 #laptop .os-win-top{border:0;position:relative}
-#laptop .os-win-top::after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:2px;background:var(--os-ink);filter:var(--os-line)}
+#laptop .os-win-top::after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:2px;background:var(--os-ink)}
 #laptop .os-win-top .t{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:40px}
 #laptop .os-win-top .t small{font:26px 'Gochi Hand',cursive;color:var(--os-dim)}
 #laptop .os-btn{position:relative;border:0;color:var(--os-ink);font:22px 'Special Elite',monospace;background:none}
-#laptop .os-btn::before{content:"";position:absolute;inset:0;border:2.5px solid var(--os-ink);border-radius:28px;filter:var(--os-line)}
+#laptop .os-btn::before{content:"";position:absolute;inset:0;border:2.5px solid var(--os-ink);border-radius:28px}
 #laptop .os-btn.solid{background:var(--os-ink);color:var(--os-bg);border-radius:28px}
 #laptop .os-app-art{background:none;border:0;color:var(--os-dim);font:26px 'Special Elite',monospace;background-image:repeating-linear-gradient(45deg,var(--os-hatch) 0 2px,transparent 2px 12px)}
-#laptop .os-app-art::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:18px;filter:var(--os-line);z-index:1}
+#laptop .os-app-art::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:18px;z-index:1}
 #laptop .os-app-art img{filter:grayscale(1) contrast(1.15)}
 #laptop .os-app-art span{background:var(--os-bg);padding:4px 14px;position:relative;z-index:1}
 #laptop .os-tags span{border:2px dashed var(--os-ink);color:var(--os-ink);font:20px 'Special Elite',monospace}
@@ -218,7 +218,7 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #monitor .inner,#monitor .bar{display:none}
 .mon-wip{position:absolute;inset:0;font-family:'Special Elite',monospace;color:var(--os-ink)}
 #monitor.embed .mon-wip,#monitor.now .mon-wip,#monitor.app .mon-wip{display:none}
-.mon-wip .crop{position:absolute;width:34px;height:34px;border:0 solid var(--os-ink);filter:var(--os-line)}
+.mon-wip .crop{position:absolute;width:34px;height:34px;border:0 solid var(--os-ink)}
 .mon-wip .tl{left:28px;top:28px;border-width:2.5px 0 0 2.5px} .mon-wip .tr{right:28px;top:28px;border-width:2.5px 2.5px 0 0}
 .mon-wip .bl{left:28px;bottom:28px;border-width:0 0 2.5px 2.5px} .mon-wip .br{right:28px;bottom:28px;border-width:0 2.5px 2.5px 0}
 .mon-wip .meta{position:absolute;top:64px;font-size:22px;line-height:1.5}
@@ -226,12 +226,12 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 .mon-wip .ml{left:72px} .mon-wip .mr{right:72px;text-align:right}
 .mon-wip .word{position:absolute;left:0;right:0;top:214px;display:flex;flex-direction:column;align-items:center}
 .mon-wip .letters{position:relative;display:flex;align-items:flex-end;font:700 260px/0.9 'Cabin Sketch',cursive;letter-spacing:.02em}
-.mon-wip .letters>span{filter:var(--os-line)}
+.mon-wip .letters>span{}
 .mon-wip .letters .i{position:relative}
-.wip-dot{position:absolute;left:50%;top:-106px;margin-left:-44px;overflow:visible;filter:var(--os-line)}
+.wip-dot{position:absolute;left:50%;top:-106px;margin-left:-44px;overflow:visible}
 .mon-wip .fin{position:absolute;left:calc(100% + 34px);top:46px;transform:rotate(-7deg);font:400 40px/1 'Gochi Hand',cursive;letter-spacing:0;color:var(--os-dim);white-space:nowrap}
-.mon-wip .fin::after{content:"";position:absolute;left:-8px;right:-8px;top:52%;height:3px;background:var(--os-ink);transform:rotate(-3deg);filter:var(--os-line)}
-.mon-wip .under{margin-top:6px;filter:var(--os-line)}
+.mon-wip .fin::after{content:"";position:absolute;left:-8px;right:-8px;top:52%;height:3px;background:var(--os-ink);transform:rotate(-3deg)}
+.mon-wip .under{margin-top:6px}
 .mon-wip .quote{position:absolute;left:0;right:0;bottom:74px;text-align:center;font:34px 'Gochi Hand',cursive}
 .mon-wip .foot{position:absolute;bottom:40px;font-size:18px;color:var(--os-dim)}
 .mon-wip .fl{left:72px} .mon-wip .fr{right:72px}
@@ -242,12 +242,41 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #monitor .mn-main small{color:var(--os-ink);font-family:'Special Elite',monospace}
 #monitor .mn-main h2{font-family:'Cabin Sketch',cursive;font-weight:700}
 #monitor .mn-main p,#monitor .mn-times,#monitor .mn-list i,#monitor .mn-list .n{color:var(--os-dim);font-family:'Special Elite',monospace}
-#monitor .mn-bar{background:none;border:2px solid var(--os-ink);height:10px;box-sizing:border-box;filter:var(--os-line)}
+#monitor .mn-bar{background:none;border:2px solid var(--os-ink);height:10px;box-sizing:border-box}
 #monitor .mn-bar span{background:var(--os-ink)}
 #monitor .mn-list button{color:var(--os-ink)}
 #monitor .mn-list button.on{color:var(--os-ink);outline:2.5px dashed var(--os-ink)}
 #monitor .mn-list b{font:28px 'Gochi Hand',cursive}
 #mnCover{filter:grayscale(1) contrast(1.1);box-shadow:none}
+
+/* ---------- Spotify keeps its own colours inside the WIP desktop ---------- */
+#laptop .os-view[data-view="spotify"] .os-win{background:#121212;color:#FFFFFF;font-family:var(--sans);border-radius:16px}
+#laptop .os-view[data-view="spotify"] .os-win::before{display:none}
+#laptop .os-view[data-view="spotify"] .os-win-top{background:#000000}
+#laptop .os-view[data-view="spotify"] .os-win-top::after{display:none}
+#laptop .os-view[data-view="spotify"] .os-win-top .t{font:700 40px var(--sans);color:#FFFFFF}
+#laptop .os-view[data-view="spotify"] .os-btn{background:#1F1F1F;color:#FFFFFF;font:500 22px var(--sans);border-radius:28px}
+#laptop .os-view[data-view="spotify"] .os-btn::before{display:none}
+#laptop .os-view[data-view="spotify"] .lp-sp .lp-top h3{font:700 44px var(--sans);color:#FFFFFF}
+#laptop .os-view[data-view="spotify"] .lp-tabs button,#laptop .os-view[data-view="spotify"] .lp-sub button{border:0;background:#2A2A2A;color:#FFFFFF;font:500 22px var(--sans)}
+#laptop .os-view[data-view="spotify"] .lp-tabs button[aria-pressed=true],#laptop .os-view[data-view="spotify"] .lp-sub button[aria-pressed=true]{background:#1DB954;color:#000000}
+#laptop .os-view[data-view="spotify"] .lp-card,#laptop .os-view[data-view="spotify"] .lp-row{color:#FFFFFF;background:#181818;border-radius:10px}
+#laptop .os-view[data-view="spotify"] .lp-card:hover,#laptop .os-view[data-view="spotify"] .lp-row:hover{background:#282828;outline:0}
+#laptop .os-view[data-view="spotify"] .lp-card img,#laptop .os-view[data-view="spotify"] .lp-row img{filter:none}
+#laptop .os-view[data-view="spotify"] .lp-card .ph,#laptop .os-view[data-view="spotify"] .lp-row .ph{background:#333333}
+#laptop .os-view[data-view="spotify"] .lp-card b,#laptop .os-view[data-view="spotify"] .lp-row b{font:600 26px var(--sans)}
+#laptop .os-view[data-view="spotify"] .lp-card small,#laptop .os-view[data-view="spotify"] .lp-row small,#laptop .os-view[data-view="spotify"] .lp-row .r,#laptop .os-view[data-view="spotify"] .lp-hint,#laptop .os-view[data-view="spotify"] .lp-empty{color:#B3B3B3;font-family:var(--sans)}
+#monitor.now .mon-now{background:#121212;color:#FFFFFF}
+#monitor.now .mn-main small{color:#1DB954;font-family:var(--sans);font-weight:600}
+#monitor.now .mn-main h2{font:700 64px/1.05 var(--sans);color:#FFFFFF}
+#monitor.now .mn-main p,#monitor.now .mn-times,#monitor.now .mn-list i,#monitor.now .mn-list .n{color:#B3B3B3;font-family:var(--sans)}
+#monitor.now .mn-bar{border:0;height:8px;background:#4D4D4D;border-radius:4px}
+#monitor.now .mn-bar span{background:#1DB954}
+#monitor.now .mn-list button{color:#FFFFFF;font-family:var(--sans)}
+#monitor.now .mn-list b{font:400 26px var(--sans)}
+#monitor.now .mn-list button.on{outline:0;background:#2A2A2A;color:#1DB954}
+#monitor.now .mn-list .on .n{color:#1DB954}
+#monitor.now #mnCover{filter:none;box-shadow:0 30px 80px rgba(0,0,0,.6)}
 /* laptop: Spotify panel */
 .lp-top{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .lp-top h3{flex:1}
@@ -755,9 +784,8 @@ function mapQuad(el, q){
 }
 function layout(){ for (const id in QUADS) mapQuad(document.getElementById(id), QUADS[id]); }
 addEventListener('resize', layout);
-/* desktop: the photo is as big as it can be while the whole desk, from the top of the monitor
-   to the keyboard, stays on screen. If that leaves room at the sides, the photo's edges fade
-   into the blurred room behind it instead of ending in a hard line. Phones scroll sideways instead. */
+/* desktop: the photo always fills the window edge to edge. In short, wide windows some of it has to be
+   cropped; the crop is centred on the desk (top of the monitor to the keyboard). Phones scroll sideways. */
 const BAND = [.1, .9];    // the part of the photo that must stay in view (top of monitor → keyboard)
 function frameScene(){
   if (portrait()){
@@ -767,7 +795,7 @@ function frameScene(){
   const vw = innerWidth, vh = innerHeight, avail = vh - 72 - 16;   // 72 = the player bar
   const coverH = (vw + 32) * .75;                   // fills the width
   const fitH = avail / (BAND[1] - BAND[0]);         // the whole desk just fits
-  const H = Math.max(Math.min(coverH, fitH), vh * .8);
+  const H = Math.max(coverH, vh + 20);   // always edge to edge, no side panels
   const W = H * 4 / 3;
   scene.style.width = W.toFixed(1) + 'px'; scene.style.height = H.toFixed(1) + 'px';
   scene.classList.toggle('fit', W < vw + 2);
@@ -779,6 +807,10 @@ function frameScene(){
 }
 frameScene();
 addEventListener('resize', frameScene);
+scene.addEventListener('transitionend', (e) => {
+  if (e.target !== scene || e.propertyName !== 'transform') return;
+  document.querySelectorAll('.screen').forEach(el => { el.style.outline = el.style.outline ? '' : '0.5px solid transparent'; });
+});
 layout();
 
 /* ---------- intro: the screens glow first, then the lamp flickers on ---------- */
