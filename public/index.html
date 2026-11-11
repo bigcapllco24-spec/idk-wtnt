@@ -36,6 +36,7 @@ button{font:inherit;color:inherit}
   container-type:size;
 }
 .scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
+.scene.nologo .wall{display:none}
 .scene.fit .edge{right:7.6%}   /* keep the wardrobe tab clear of the faded edge */
 .scene.fit{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}
 .backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(40px) brightness(.5) saturate(.95);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
@@ -789,8 +790,8 @@ addEventListener('resize', layout);
 const BAND = [.1, .9];    // the part of the photo that must stay in view (top of monitor → keyboard)
 function frameScene(){
   if (portrait()){
-    ['width', 'height', '--ty', '--vt'].forEach(k => scene.style.removeProperty(k));
-    scene.classList.remove('fit'); return;
+    ['width', 'height', '--ty', '--vt', '--wall-fs'].forEach(k => scene.style.removeProperty(k));
+    scene.classList.remove('fit', 'nologo'); return;
   }
   const vw = innerWidth, vh = innerHeight, avail = vh - 72 - 16;   // 72 = the player bar
   const coverH = (vw + 32) * .75;                   // fills the width
@@ -806,6 +807,7 @@ function frameScene(){
   // keep the logo above the laptop: shrink it when the crop leaves little room
   const room = (0.335 * H + T) - Math.max(0.095 * H + T, 84);
   scene.style.setProperty('--wall-fs', Math.max(34, room / 1.55).toFixed(0) + 'px');
+  scene.classList.toggle('nologo', room < 70);   // no room at all: the monitor already says who this is
   layout();
 }
 frameScene();
