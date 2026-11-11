@@ -26,17 +26,16 @@ button{font:inherit;color:inherit}
 /* ---------- stage + scene ---------- */
 .stage{position:fixed;inset:0;overflow:hidden;background:#000}
 .scene{
-  position:absolute;left:50%;top:50%;
-  /* fills the window edge to edge (a little extra so the mouse drift never shows an edge) */
+  position:absolute;left:50%;top:0;
+  /* fills the window edge to edge (a little extra so the mouse drift never shows an edge).
+     How far it sits up or down (--ty) is worked out in frameScene() so the desk stays in view */
   width:max(calc(100vw + 32px),calc(133.334vh + 27px));height:max(calc(75vw + 24px),calc(100vh + 20px));
-  transform:translate(-50%,-50%) translate(var(--px),var(--py)) scale(var(--s));
+  transform:translate(-50%,var(--ty,calc(50vh - 50%))) translate(var(--px),var(--py)) scale(var(--s));
   transform-origin:var(--ox) var(--oy);
   transition:transform var(--cam);
   container-type:size;
 }
 .scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
-/* ultra-wide screens only: filling the width would crop away the keys and push the logo onto the laptop */
-@media (min-aspect-ratio: 2/1){ .scene{width:max(82vw,133.334vh);height:max(61.5vw,100vh)} }
 .backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(36px) brightness(.42) saturate(.9);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
 body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08) saturate(.6)}
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
@@ -167,9 +166,9 @@ body.lights-off .spill{opacity:.9}
 .spill.lap{left:40%;top:28%;width:26%;height:32%;background:radial-gradient(closest-side,rgba(120,150,190,.25),rgba(120,150,190,0))}
 
 /* ---------- wall wordmark ---------- */
-.wall{position:absolute;left:50.5%;top:max(9.5%, calc(50% - 50vh + 84px));pointer-events:none;display:flex;flex-direction:column;gap:1.1cqw;
+.wall{position:absolute;left:50.5%;top:max(9.5%, calc(var(--vt, calc(50% - 50vh)) + 84px));pointer-events:none;display:flex;flex-direction:column;gap:1.1cqw;
   transition:opacity .8s ease, transform 1.2s cubic-bezier(.2,.7,.2,1)}
-.wall .mark{font-weight:300;font-size:8.6cqw;line-height:.9;letter-spacing:-.03em;color:rgba(212,207,200,.62);text-shadow:0 .1cqw .6cqw rgba(0,0,0,.08)}
+.wall .mark{font-weight:300;font-size:min(8.6cqw,15vh);line-height:.9;letter-spacing:-.03em;color:rgba(212,207,200,.62);text-shadow:0 .1cqw .6cqw rgba(0,0,0,.08)}
 .wall p{margin:0 0 0 .35cqw;font-size:1.05cqw;font-weight:300;color:#E9DFD0;letter-spacing:.01em;max-width:30ch}
 body.intro .wall{opacity:0;transform:translateY(.8cqw)}
 body.lights-off .wall{opacity:.35}
@@ -537,6 +536,19 @@ function mapQuad(el, q){
 }
 function layout(){ for (const id in QUADS) mapQuad(document.getElementById(id), QUADS[id]); }
 addEventListener('resize', layout);
+/* the photo always fills the window; when the window is wide and short, some of the photo has to be
+   cropped, so keep the band from the monitor's top edge to the keys in view, or the top part if it can't all fit */
+function frameScene(){
+  if (portrait()){ scene.style.removeProperty('--ty'); scene.style.removeProperty('--vt'); return; }
+  const H = scene.offsetHeight, vh = innerHeight, avail = vh - 72;   // 72 = the player bar
+  const b0 = .09 * H, b1 = .9 * H;
+  let T = (b1 - b0 <= avail) ? avail / 2 - (b0 + b1) / 2 : -b0;
+  T = Math.min(-10, Math.max(vh - H + 10, T));
+  scene.style.setProperty('--ty', T.toFixed(1) + 'px');
+  scene.style.setProperty('--vt', (-T).toFixed(1) + 'px');
+}
+frameScene();
+addEventListener('resize', frameScene);
 layout();
 
 /* ---------- intro: the screens glow first, then the lamp flickers on ---------- */
@@ -968,7 +980,8 @@ const TYPE_LABEL = { playlist:'Playlist', album:'Album', track:'Song', artist:'A
 function baseRect(){
   const W = scene.offsetWidth, H = scene.offsetHeight;
   if (portrait()) return { left: -stage.scrollLeft, top: 0, width: W, height: H };
-  return { left: innerWidth / 2 - W / 2, top: innerHeight / 2 - H / 2, width: W, height: H };
+  const ty = parseFloat(scene.style.getPropertyValue('--ty'));
+  return { left: innerWidth / 2 - W / 2, top: isNaN(ty) ? innerHeight / 2 - H / 2 : ty, width: W, height: H };
 }
 function focusScreen(id){
   if (inRoom && !String(inRoom).startsWith('screen')){ back(); setTimeout(() => focusScreen(id), reduce ? 0 : 700); return; }
