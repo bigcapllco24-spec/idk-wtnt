@@ -77,18 +77,67 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
 #monitor .title{font-size:30px;color:#B9D7DE;letter-spacing:.01em}
 #monitor .bar{position:absolute;left:60px;right:60px;bottom:48px;height:5px;border-radius:3px;background:rgba(255,255,255,.15)}
 #monitor .bar span{display:block;width:37%;height:100%;border-radius:3px;background:var(--screen)}
-#laptop{width:1440px;height:900px;background:#0C0B0A;padding:70px 80px;display:flex;flex-direction:column;gap:46px}
-#laptop header{display:flex;justify-content:space-between;align-items:baseline}
-#laptop h3{margin:0;font-weight:300;font-size:64px;letter-spacing:-.01em;color:var(--paper)}
-#laptop header span{font-size:30px;color:var(--lamp)}
-#laptop .tiles{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
-#laptop figure{margin:0;display:flex;flex-direction:column;gap:18px}
-#laptop img{width:100%;flex:1;min-height:0;object-fit:cover;border-radius:12px}
-#laptop figcaption{font-size:28px;color:var(--dust)}
+/* ---------- the laptop: idk∗os ---------- */
+#laptop{width:1440px;height:900px;background:#0D0B09;color:var(--paper)}
+.os-bar{position:absolute;left:0;right:0;top:0;height:72px;box-sizing:border-box;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2A2520}
+.os-bar .os-name{font:24px var(--mono);color:var(--dust);letter-spacing:.04em}
+.os-bar .os-right{display:flex;align-items:center;gap:28px;font:24px var(--mono);color:var(--dust)}
+.os-now{display:flex;align-items:center;gap:14px;height:48px;padding:0 20px 0 8px;border-radius:24px;background:#1B1714;font:22px var(--sans);max-width:520px}
+.os-now i{width:34px;height:34px;border-radius:8px;background:var(--lamp);flex-shrink:0}
+.os-now span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-view{position:absolute;left:0;right:0;top:72px;bottom:0;display:none;box-sizing:border-box}
+#laptop[data-os="home"] .os-view[data-view="home"],#laptop[data-os="spotify"] .os-view[data-view="spotify"],#laptop[data-os="app"] .os-view[data-view="app"]{display:flex}
+.os-view[data-view="home"]{flex-direction:column;gap:42px;padding:52px 72px 56px}
+.os-view h3{margin:0;font-size:64px;font-weight:300;letter-spacing:-.01em;line-height:1}
+.os-label{font:20px var(--mono);color:var(--dim);letter-spacing:.12em;display:flex;gap:18px;align-items:baseline}
+.os-label small{font:22px var(--sans);letter-spacing:0}
+.os-sec{display:flex;flex-direction:column;gap:18px}
+.os-listen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.os-card{display:flex;align-items:center;gap:32px;height:200px;box-sizing:border-box;padding:0 36px;border-radius:28px;background:#1B1714;border:2px solid #332D27;color:var(--paper);text-align:left;cursor:pointer;font:inherit}
+.os-card:hover,.os-card:focus-visible{border-color:var(--lamp)}
+.os-card.wide{grid-column:span 2}
+.os-card .ic{width:136px;height:136px;flex-shrink:0;border-radius:32px;background:var(--lamp);display:flex;align-items:center;justify-content:center}
+.os-card .ic.small{width:112px;height:112px;border-radius:28px;background:var(--screen)}
+.os-card .ic svg{width:56%;height:56%;fill:none;stroke:#0D0B09;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.os-card b{display:block;font-size:44px;font-weight:400;line-height:1}
+.os-card.small b{font-size:36px}
+.os-card small{display:block;margin-top:8px;font-size:26px;color:var(--dust)}
+.os-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}
+.os-game{display:flex;flex-direction:column;gap:12px;padding:0;border:0;background:none;color:var(--paper);text-align:left;cursor:pointer;font:inherit}
+.os-game .art{position:relative;aspect-ratio:16/10;border-radius:18px;background:#1B1714;border:2px solid #332D27;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:300;color:var(--dust)}
+.os-game .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.os-game .art em{position:absolute;left:12px;top:12px;height:32px;padding:0 12px;border-radius:16px;background:var(--lamp);color:#0D0B09;font:17px var(--mono);font-style:normal;display:flex;align-items:center}
+.os-game.soon .art{border-style:dashed;border-color:#4A423A}
+.os-game:hover .art,.os-game:focus-visible .art{border-color:var(--lamp)}
+.os-game b{font-size:28px;font-weight:400}
+.os-game small{font-size:21px;color:var(--dim);margin-top:-8px}
+.os-win{flex:1;margin:24px 32px 32px;border-radius:24px;background:#151210;border:2px solid #2A2520;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.os-win-top{height:88px;flex-shrink:0;box-sizing:border-box;padding:0 28px;display:flex;align-items:center;gap:24px;border-bottom:1px solid #2A2520}
+.os-win-top .t{flex:1;font-size:34px;display:flex;align-items:baseline;gap:16px;min-width:0}
+.os-win-top .t small{font-size:22px;color:var(--dim)}
+.os-btn{display:flex;align-items:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:2px solid var(--lamp);background:transparent;color:var(--paper);font:24px var(--sans);cursor:pointer;text-decoration:none;flex-shrink:0}
+.os-btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.os-btn.solid{background:var(--lamp);color:#0D0B09;font-weight:500}
+.os-btn[hidden]{display:none}
+.os-win-body{flex:1;min-height:0;box-sizing:border-box;padding:32px 36px;display:flex;gap:36px}
+.os-app-art{flex:1;min-width:0;position:relative;border-radius:18px;overflow:hidden;background:#0A1214;border:2px solid #1E2C30;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--dust)}
+.os-app-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.os-app-side{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:28px}
+.os-tags{display:flex;gap:10px;flex-wrap:wrap}
+.os-tags span{height:40px;padding:0 16px;border-radius:20px;border:2px solid #332D27;font-size:21px;color:var(--dust);display:flex;align-items:center}
+.os-pitch{margin:0;font-size:27px;line-height:1.35}
+.os-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.os-facts div{display:flex;flex-direction:column;gap:4px;font-size:21px;color:var(--dim)}
+.os-facts b{font-size:44px;font-weight:300;color:var(--paper)}
+.os-app-note{margin:auto 0 0;font-size:22px;color:var(--dim)}
+#laptop .lp-sp{display:flex;flex-direction:column;gap:26px;flex:1;min-height:0;padding:32px 36px}
+#laptop .lp-sp .lp-top h3{font-size:44px}
+/* a game running on the monitor */
+#monitor .mon-app{position:absolute;inset:0;display:none;background:#000}
+#monitor .mon-app iframe{display:block;width:100%;height:100%;border:0}
+#monitor.app .mon-app{display:block}
+#monitor.app .inner,#monitor.app .bar,#monitor.app .mon-embed,#monitor.app .mon-now{display:none}
 /* laptop: Spotify panel */
-#laptop .lp-sp{display:none;flex-direction:column;gap:26px;height:100%;min-height:0}
-#laptop.sp .lp-default{display:none} #laptop.sp .lp-sp{display:flex}
-#laptop.sp{padding:56px 64px}
 .lp-top{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .lp-top h3{flex:1}
 .lp-tabs{display:flex;gap:12px}
@@ -150,8 +199,9 @@ body.screen-mode .screenbar{display:flex}
   .screenbar{top:70px;gap:8px;width:calc(100% - 24px)}
   .screenbar .back{height:40px;padding:0 14px 0 10px;font-size:14px}
   /* phones see the screens small, so the laptop uses bigger type and fewer columns */
-  #laptop.sp{padding:48px 56px}
   .lp-top h3{font-size:84px}
+  .os-view h3{font-size:84px} .os-card b{font-size:60px} .os-card small,.os-game small{font-size:36px} .os-game b{font-size:44px} .os-label{font-size:32px}
+  .os-games{grid-template-columns:repeat(3,minmax(0,1fr))} .os-pitch{font-size:40px} .os-app-side{width:520px}
   .lp-tabs button,.lp-sub button{height:104px;padding:0 40px;border-radius:52px;font-size:44px}
   .lp-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:36px}
   .lp-card b{font-size:52px} .lp-card small{font-size:42px}
@@ -368,6 +418,7 @@ body.intro .player{transform:translateY(110%)}
       </div>
       <div class="bar"><span></span></div>
       <div class="mon-embed" id="monEmbed"></div>
+      <div class="mon-app" id="monApp"></div>
       <div class="mon-now" id="monNow">
         <img id="mnCover" alt="">
         <div class="mn-main">
@@ -381,7 +432,25 @@ body.intro .player{transform:translateY(110%)}
       </div>
     </div>
 
-    <div class="screen" id="laptop" aria-hidden="true">
+    <div class="screen" id="laptop" aria-hidden="true" data-os="home">
+      <div class="os-bar"><span class="os-name">idk∗os</span>
+        <span class="os-right"><span class="os-now"><i id="osNowArt"></i><span id="osNow">Nothing playing</span></span><span id="osClock"></span></span></div>
+
+      <div class="os-view" data-view="home">
+        <h3>What do you want to open?</h3>
+        <div class="os-sec"><div class="os-label">LISTEN</div>
+          <div class="os-listen">
+            <button class="os-card wide" data-os-go="spotify"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5c5-1.8 11-1.4 16 1.2"/><path d="M5 13c4-1.3 9-1 13 1"/><path d="M6 16.4c3.3-.9 7-.6 10 .8"/></svg></span>
+              <span><b>Spotify</b><small id="osSpSub">playlists, plays on the monitor</small></span></button>
+            <button class="os-card small" id="osTracks"><span class="ic small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span>
+              <span><b>My tracks</b><small>uploads</small></span></button>
+          </div></div>
+        <div class="os-sec"><div class="os-label">GAMES <small>from Capcade</small></div>
+          <div class="os-games" id="osGames"></div></div>
+      </div>
+
+      <div class="os-view" data-view="spotify"><div class="os-win">
+        <div class="os-win-top"><button class="os-btn" data-os-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Home</button><div class="t">Spotify</div></div>
       <div class="lp-sp" aria-label="Spotify">
         <div class="lp-top"><h3 id="lpTitle">On Spotify</h3>
           <div class="lp-tabs" id="lpTabs" hidden><button data-tab="shelf" aria-pressed="true">For visitors</button><button data-tab="library" aria-pressed="false">My library</button></div></div>
@@ -389,15 +458,22 @@ body.intro .player{transform:translateY(110%)}
         <div class="lp-grid" id="lpGrid"></div>
         <p class="lp-hint" id="lpHint">Pick one to play it on the monitor.</p>
       </div>
-      <div class="lp-default">
-      <header><h3>Recent uploads</h3><span>View all</span></header>
-      <div class="tiles">
-        <figure><img src="img/mech.jpg" alt=""><figcaption>LEGO mech</figcaption></figure>
-        <figure><img src="img/pour.jpg" alt=""><figcaption>numb.world</figcaption></figure>
-        <figure><img src="img/crane.jpg" alt=""><figcaption>Paper crane</figcaption></figure>
-        <figure><img src="img/astro.jpg" alt=""><figcaption>Astronaut</figcaption></figure>
-      </div>
-      </div>
+      </div></div>
+
+      <div class="os-view" data-view="app"><div class="os-win">
+        <div class="os-win-top"><button class="os-btn" data-os-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Home</button><div class="t"><span id="osAppTitle"></span><small>on Capcade</small></div>
+          <button class="os-btn solid" id="osAppPlay" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>Play on the monitor</button></div>
+        <div class="os-win-body">
+          <div class="os-app-art" id="osAppArt"></div>
+          <div class="os-app-side">
+            <div class="os-tags" id="osAppTags"></div>
+            <p class="os-pitch" id="osAppPitch"></p>
+            <div class="os-facts" id="osAppFacts"></div>
+            <a class="os-btn" id="osAppLink" target="_blank" rel="noopener">Play on playcapcade.com<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg></a>
+            <p class="os-app-note" id="osAppNote"></p>
+          </div>
+        </div>
+      </div></div>
     </div>
 
     <div class="wall" aria-hidden="true">
@@ -410,8 +486,8 @@ body.intro .player{transform:translateY(110%)}
       <span class="dot"></span><span class="tag"><b>Video</b><small>the monitor</small></span></button>
     <button class="hs" data-go="photos" style="left:18%;top:6.4%;width:6.6%;height:5.2%" aria-label="Webcam: open Photos">
       <span class="dot"></span><span class="tag"><b>Photos</b><small>the webcam</small></span></button>
-    <button class="hs" data-focus="laptop" data-screen="laptop" style="left:44.2%;top:34.2%;width:17.8%;height:16%" aria-label="Laptop: open the Archive" id="laptopHs">
-      <span class="dot"></span><span class="tag"><b id="laptopTag">Archive</b><small id="laptopSub">everything, newest first</small></span></button>
+    <button class="hs" data-focus="laptop" data-screen="laptop" style="left:44.2%;top:34.2%;width:17.8%;height:16%" aria-label="Laptop: open Spotify, games and apps" id="laptopHs">
+      <span class="dot"></span><span class="tag"><b id="laptopTag">Laptop</b><small id="laptopSub">Spotify, games and apps</small></span></button>
     <button class="hs" data-go="sound" style="left:1%;top:47%;width:15%;height:52%;--dy:62%" aria-label="Guitar: open Sound">
       <span class="dot"></span><span class="tag up"><b>Sound</b><small>the guitar</small></span></button>
     <button class="hs" data-go="sound" style="left:36.6%;top:73.2%;width:26%;height:16.3%" aria-label="AKAI keys: open Sound">
@@ -439,6 +515,7 @@ body.intro .player{transform:translateY(110%)}
 <div class="screenbar" id="screenBar">
   <button class="back" id="screenBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to desk</button>
   <button class="back" id="toLaptop" hidden>Pick another</button>
+  <button class="back" id="appFull" hidden>Full screen</button>
   <a class="back" id="openSpotify" href="#" target="_blank" rel="noopener" hidden>Open in Spotify<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v6H4V5h6"/></svg></a>
 </div>
 <div class="fade" aria-hidden="true"></div>
@@ -820,14 +897,6 @@ library().then(items => {
   ITEMS = items;
   const tracks = items.filter(i => i.type === 'track');
   if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); }
-  // the laptop screen shows the four newest uploads that have a picture
-  const pics = items.filter(i => i.cover || i.type === 'photo' || i.type === 'art').slice(0, 4);
-  if (pics.length === 4){
-    document.querySelectorAll('#laptop figure').forEach((f, n) => {
-      f.querySelector('img').src = pics[n].cover || pics[n].url;
-      f.querySelector('figcaption').textContent = pics[n].title;
-    });
-  }
 });
 
 /* ---------- rooms ---------- */
@@ -1020,21 +1089,21 @@ function focusScreen(id){
   document.querySelectorAll('.screen').forEach(e => { const on = e.id === id; e.classList.toggle('active', on); e.setAttribute('aria-hidden', String(!on)); });
   inRoom = 'screen-' + id;
   body.classList.add('screen-mode');
-  $('#openSpotify').hidden = !(id === 'monitor' && embedItem);
+  const appOn = id === 'monitor' && $('#monitor').classList.contains('app');
+  $('#openSpotify').hidden = !(id === 'monitor' && embedItem && !appOn);
+  $('#appFull').hidden = !appOn;
   $('#toLaptop').hidden = id !== 'monitor';
   if (id === 'monitor' && embedItem) $('#openSpotify').href = embedItem.url;
-  history.replaceState(null, '', '#' + (id === 'laptop' ? 'listen' : 'listen-now'));
+  history.replaceState(null, '', '#' + (id === 'laptop' ? 'laptop' : 'monitor'));
   sendStat({ type:'room', room:'spotify' });
   setTimeout(() => $('#screenBack').focus({ preventScroll:true }), reduce ? 0 : 900);
 }
 $('#toLaptop').addEventListener('click', () => focusScreen('laptop'));
 
 // the two hotspots decide where to go based on what's available
-document.querySelector('[data-focus="laptop"]').addEventListener('click', () => {
-  if ($('#laptop').classList.contains('sp')) focusScreen('laptop'); else go('archive');
-});
+document.querySelector('[data-focus="laptop"]').addEventListener('click', () => focusScreen('laptop'));
 document.querySelector('[data-focus="monitor"]').addEventListener('click', () => {
-  if (embedItem) focusScreen('monitor'); else go('video');
+  if (embedItem || curApp) focusScreen('monitor'); else go('video');
 });
 
 /* Spotify's player on the monitor, driven through its iFrame API so the bar at the bottom
@@ -1085,7 +1154,7 @@ function plainEmbed(item){
 }
 function openOnMonitor(item){
   embedItem = item; nowMeta = null;
-  $('#monitor').classList.remove('now'); $('#monitor').classList.add('embed');
+  $('#monitor').classList.remove('now', 'app'); $('#monitor').classList.add('embed');
   showEmbedInBar(item);
   focusScreen('monitor');
   const uri = `spotify:${item.type}:${item.id}`;
@@ -1167,13 +1236,72 @@ document.querySelectorAll('#lpTabs button').forEach(b => b.addEventListener('cli
 document.querySelectorAll('#lpSub button').forEach(b => b.addEventListener('click', () => { lpSub = b.dataset.sub; renderLaptop(); }));
 
 function laptopIsSpotify(){
-  const on = SHELF.length > 0 || OWNER_SP;
-  $('#laptop').classList.toggle('sp', on);
-  $('#laptopTag').textContent = on ? 'Spotify' : 'Archive';
-  $('#laptopSub').textContent = on ? 'the laptop, playlists and songs' : 'everything, newest first';
-  $('#laptopHs').setAttribute('aria-label', on ? 'Laptop: browse Spotify playlists' : 'Laptop: open the Archive');
-  if (on) renderLaptop();
+  $('#osSpSub').textContent = SHELF.length ? `${SHELF.length} playlists · plays on the monitor` : 'playlists, plays on the monitor';
+  renderLaptop();
 }
+
+/* ---------- idk∗os: the laptop's own little desktop ---------- */
+function osGo(view){
+  $('#laptop').dataset.os = view;
+  if (view === 'spotify') renderLaptop();
+}
+document.querySelectorAll('[data-os-go]').forEach(b => b.addEventListener('click', () => osGo(b.dataset.osGo)));
+$('#osTracks').addEventListener('click', () => { back(); setTimeout(() => go('sound'), reduce ? 0 : 700); });
+function osClock(){ $('#osClock').textContent = new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }); }
+osClock(); setInterval(osClock, 30000);
+setInterval(() => {   // the menu bar shows what the player at the bottom is playing
+  const t = $('#trackTitle').textContent;
+  $('#osNow').textContent = playing ? t : 'Nothing playing';
+}, 1000);
+
+// games come from public/apps/apps.json; a game plays here once its build is in public/apps/<id>/
+let APPS = [], curApp = null;
+fetch('/apps/apps.json', { cache:'no-cache' }).then(r => r.json()).then(d => { APPS = d.apps || []; renderGames(); }).catch(() => {});
+function renderGames(){
+  const box = $('#osGames'); box.innerHTML = '';
+  APPS.slice(0, 5).forEach(a => {
+    const b = document.createElement('button'); b.className = 'os-game' + (a.status === 'soon' ? ' soon' : '');
+    const art = el('span', 'art');
+    if (a.art){ const i = document.createElement('img'); i.src = a.art; i.alt = ''; art.appendChild(i); } else art.textContent = a.status === 'soon' ? 'Soon' : a.title;
+    if (a.badge){ art.appendChild(el('em', null, a.badge)); }
+    b.append(art, el('b', null, a.title), el('small', null, (a.tags || []).join(' · ')));
+    b.setAttribute('aria-label', a.title + (a.status === 'soon' ? ', coming soon' : ''));
+    b.addEventListener('click', () => openApp(a));
+    box.appendChild(b);
+  });
+}
+function openApp(a){
+  $('#osAppTitle').textContent = a.title;
+  const art = $('#osAppArt'); art.innerHTML = '';
+  if (a.hero || a.art){ const i = document.createElement('img'); i.src = a.hero || a.art; i.alt = ''; art.appendChild(i); } else art.textContent = a.status === 'soon' ? 'Coming soon' : a.title;
+  $('#osAppTags').innerHTML = ''; (a.tags || []).forEach(t => $('#osAppTags').appendChild(el('span', null, t)));
+  $('#osAppPitch').textContent = a.pitch || '';
+  $('#osAppFacts').innerHTML = '';
+  (a.facts || []).slice(0, 3).forEach(f => { const m = /^(\S+)\s+(.*)$/.exec(f) || [, f, '']; const d = document.createElement('div'); d.append(el('b', null, m[1]), document.createTextNode(m[2])); $('#osAppFacts').appendChild(d); });
+  const local = !!a.entry;
+  $('#osAppPlay').hidden = !local;
+  $('#osAppPlay').onclick = () => playApp(a);
+  $('#osAppLink').hidden = !a.url;
+  if (a.url) $('#osAppLink').href = a.url;
+  $('#osAppNote').textContent = local ? '' : a.status === 'soon' ? 'Not out yet.' : 'This one plays on playcapcade.com for now.';
+  osGo('app');
+}
+function playApp(a){
+  curApp = a; embedItem = null; nowMeta = null;
+  if (SRC === 'local' && playing) pause();
+  if (SRC === 'spotify' && spPlayer) spPlayer.pause();
+  if (embedCtl) embedCtl.pause();
+  const box = $('#monApp'); box.innerHTML = '';
+  const f = document.createElement('iframe');
+  f.src = a.entry; f.title = a.title; f.allow = 'autoplay; fullscreen; gamepad';
+  f.setAttribute('allowfullscreen', '');
+  box.appendChild(f);
+  $('#monitor').classList.remove('embed', 'now'); $('#monitor').classList.add('app');
+  focusScreen('monitor');
+  setTimeout(() => f.focus(), reduce ? 0 : 950);
+  sendStat({ type:'room', room:'game:' + a.id });
+}
+$('#appFull').addEventListener('click', () => { const f = document.querySelector('#monApp iframe'); if (f && f.requestFullscreen) f.requestFullscreen(); });
 api.get('/api/spotify/public').then(d => { SHELF = d.items || []; laptopIsSpotify(); }).catch(() => {});
 
 /* ---------- your own library (owner only) ---------- */
@@ -1233,7 +1361,7 @@ async function playSpotify(body, meta, zoom){
 let nowMeta = null, nowBody = null;
 async function showNow(meta, body, zoom){
   nowMeta = meta; nowBody = body; embedItem = { ...meta, url: meta.url || (meta.id ? `https://open.spotify.com/${meta.type}/${meta.id}` : 'https://open.spotify.com') };
-  $('#monitor').classList.remove('embed'); $('#monitor').classList.add('now');
+  $('#monitor').classList.remove('embed', 'app'); $('#monitor').classList.add('now');
   $('#mnCtx').textContent = `${meta.ctx || 'Playing'} · ${meta.name}`;
   if (meta.image) $('#mnCover').src = meta.image;
   if (zoom) focusScreen('monitor');
@@ -1299,12 +1427,13 @@ function onSpState(state){
 setInterval(() => { if (SRC !== 'local' && !SP.paused){ draw(); drawNow(); } }, 500);
 if (ownerPw){
   spToken().then(() => { OWNER_SP = true; laptopIsSpotify(); startSdk(); })
-    .catch(e => { ownerSpErr = e.message; if ($('#laptop').classList.contains('sp')) renderLaptop(); });
+    .catch(e => { ownerSpErr = e.message; renderLaptop(); });
 }
 
 /* deep links: idk-wtnt.art/#sound opens straight into a room */
 if (location.hash && CAM[location.hash.slice(1)]) setTimeout(() => go(location.hash.slice(1)), 2600);
-if (location.hash === '#listen') setTimeout(() => { if ($('#laptop').classList.contains('sp')) focusScreen('laptop'); }, 2600);
+if (location.hash === '#listen') setTimeout(() => { osGo('spotify'); focusScreen('laptop'); }, 2600);
+if (location.hash === '#laptop') setTimeout(() => focusScreen('laptop'), 2600);
 addEventListener('hashchange', () => { const r = location.hash.slice(1); if (CAM[r] && r !== inRoom) go(r); else if (!r) back(); });
 </script>
 </body>

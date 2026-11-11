@@ -45,6 +45,19 @@ Visitors see your chosen playlists on the laptop screen. Clicking one puts Spoti
 
 Spotify keeps new apps in development mode: only you (the app owner) can log in through the site, which is all this needs. Visitors never log in here; they log in on Spotify's own player.
 
+## The laptop (idk∗os) and games
+
+Clicking the laptop opens a small desktop: Spotify, your tracks, and games from Capcade.
+The games list is `public/apps/apps.json`. A game with no `entry` links to playcapcade.com.
+
+When the Capcade team sends a build of a game (a folder or a .zip whose `index.html` starts the game):
+
+    scripts/import-game.sh sky-rush ~/Downloads/sky-rush.zip
+
+That copies it to `public/apps/sky-rush/`, points the game at it, and picks up `art/tile.jpg` and `art/hero.jpg` if the build has them. Commit and push, and it plays on the monitor. Send a newer build the same way: it replaces the old copy.
+
+Ask the team for a build that runs on its own: Capcade games talk to the Capcade site (tickets, stats, ads) through `bcg.js`, which isn't on this site. Files must be under 25 MB each. This repo is public, so anything put in `public/apps/` can be read by anyone.
+
 ## Run locally
 
 ```

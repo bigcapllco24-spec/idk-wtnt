@@ -1,0 +1,80 @@
+{
+  "note": "The games on the laptop. To add a build the Capcade team sends, run: scripts/import-game.sh <id> <folder-or-zip>. A game with no \"entry\" links to playcapcade.com instead.",
+  "apps": [
+    {
+      "id": "sky-rush",
+      "title": "Sky Rush",
+      "tags": [
+        "Flying",
+        "Racing"
+      ],
+      "pitch": "Fly through rings, race the clock and win tickets in 10 worlds. Race five rival planes in Grand Prix cups.",
+      "facts": [
+        "10 worlds",
+        "30 missions",
+        "18 planes"
+      ],
+      "status": "live",
+      "url": "https://playcapcade.com/games/sky-rush",
+      "entry": null,
+      "art": null,
+      "hero": null
+    },
+    {
+      "id": "reef-dive",
+      "title": "Reef Dive",
+      "tags": [
+        "Exploring",
+        "Sea life"
+      ],
+      "pitch": "Dive real coral reefs around the world, swim through gold rings and snap photos of turtles, sharks and fish for your Ocean Atlas.",
+      "facts": [
+        "3 real reefs",
+        "9 dives",
+        "273 sea creatures"
+      ],
+      "status": "live",
+      "badge": "NEW",
+      "url": "https://playcapcade.com/games/reef-dive",
+      "entry": null,
+      "art": null,
+      "hero": null
+    },
+    {
+      "id": "gem-drop",
+      "title": "Gem Drop",
+      "tags": [
+        "Puzzle"
+      ],
+      "pitch": "Match falling gems before the jar fills up.",
+      "status": "soon",
+      "url": null,
+      "entry": null,
+      "art": null
+    },
+    {
+      "id": "turbo-turtles",
+      "title": "Turbo Turtles",
+      "tags": [
+        "Racing"
+      ],
+      "status": "soon",
+      "url": null,
+      "entry": null,
+      "art": null,
+      "pitch": "The slowest racers just got rockets."
+    },
+    {
+      "id": "rocket-pogo",
+      "title": "Rocket Pogo",
+      "tags": [
+        "Jumping"
+      ],
+      "status": "soon",
+      "url": null,
+      "entry": null,
+      "art": null,
+      "pitch": "Bounce higher and higher. Don't look down."
+    }
+  ]
+}
