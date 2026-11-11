@@ -82,9 +82,10 @@ export function handle(fn) {
 
 // Admin = the request carries the ADMIN_PASSWORD set in the Cloudflare dashboard.
 export function requireAdmin(request, env) {
-  const expected = env.ADMIN_PASSWORD;
+  // spaces at either end are ignored: browsers strip them from headers, and they sneak in when pasting
+  const expected = String(env.ADMIN_PASSWORD || '').trim();
   if (!expected) throw new HttpError(503, 'Uploads are switched off: set ADMIN_PASSWORD in the Cloudflare dashboard.');
-  const given = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  const given = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
   if (!safeEqual(given, expected)) throw new HttpError(401, 'Wrong password.');
 }
 
