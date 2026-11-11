@@ -360,7 +360,7 @@ body.lights-off .spill{opacity:.9}
 /* ---------- wall wordmark ---------- */
 .wall{position:absolute;left:50.5%;top:max(9.5%, calc(var(--vt, calc(50% - 50vh)) + 84px));pointer-events:none;display:flex;flex-direction:column;gap:1.1cqw;
   transition:opacity .8s ease, transform 1.2s cubic-bezier(.2,.7,.2,1)}
-.wall .mark{font-weight:300;font-size:min(8.6cqw,15vh);line-height:.9;letter-spacing:-.03em;color:rgba(212,207,200,.62);text-shadow:0 .1cqw .6cqw rgba(0,0,0,.08)}
+.wall .mark{font-weight:300;font-size:min(8.6cqw,15vh,var(--wall-fs,999px));line-height:.9;letter-spacing:-.03em;color:rgba(212,207,200,.62);text-shadow:0 .1cqw .6cqw rgba(0,0,0,.08)}
 .wall p{margin:0 0 0 .35cqw;font-size:1.05cqw;font-weight:300;color:#E9DFD0;letter-spacing:.01em;max-width:30ch}
 body.intro .wall{opacity:0;transform:translateY(.8cqw)}
 body.lights-off .wall{opacity:.35}
@@ -803,6 +803,9 @@ function frameScene(){
   T = H >= vh ? Math.min(0, Math.max(vh - H, T)) : (vh - H) / 2;
   scene.style.setProperty('--ty', T.toFixed(1) + 'px');
   scene.style.setProperty('--vt', (-T).toFixed(1) + 'px');
+  // keep the logo above the laptop: shrink it when the crop leaves little room
+  const room = (0.335 * H + T) - Math.max(0.095 * H + T, 84);
+  scene.style.setProperty('--wall-fs', Math.max(34, room / 1.55).toFixed(0) + 'px');
   layout();
 }
 frameScene();
