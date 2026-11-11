@@ -27,13 +27,16 @@ button{font:inherit;color:inherit}
 .stage{position:fixed;inset:0;overflow:hidden;background:#000}
 .scene{
   position:absolute;left:50%;top:50%;
-  width:max(82vw,133.334vh);height:max(61.5vw,100vh);
+  /* fills the window edge to edge (a little extra so the mouse drift never shows an edge) */
+  width:max(calc(100vw + 32px),calc(133.334vh + 27px));height:max(calc(75vw + 24px),calc(100vh + 20px));
   transform:translate(-50%,-50%) translate(var(--px),var(--py)) scale(var(--s));
   transform-origin:var(--ox) var(--oy);
   transition:transform var(--cam);
   container-type:size;
 }
 .scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
+/* ultra-wide screens only: filling the width would crop away the keys and push the logo onto the laptop */
+@media (min-aspect-ratio: 2/1){ .scene{width:max(82vw,133.334vh);height:max(61.5vw,100vh)} }
 .backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(36px) brightness(.42) saturate(.9);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
 body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08) saturate(.6)}
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
