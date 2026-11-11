@@ -37,8 +37,13 @@ button{font:inherit;color:inherit}
 }
 .scene.drift{transition:transform 1.4s cubic-bezier(.2,.7,.2,1), filter .6s ease}
 .scene.nologo .wall{display:none}
-.scene.fit .edge{right:7.6%}   /* keep the wardrobe tab clear of the faded edge */
-.scene.fit{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}
+.photo.mirror{display:none;pointer-events:none}
+.scene.fit .photo.mirror{display:block;transform:scaleX(-1)}
+.photo.mirror.l{left:-100%;right:auto} .photo.mirror.r{left:100%;right:auto}
+.mirror-shade{display:none;position:absolute;top:0;bottom:0;width:100%;pointer-events:none}
+.scene.fit .mirror-shade{display:block}
+.mirror-shade.l{right:100%;background:linear-gradient(270deg,rgba(8,6,5,.2) 0,rgba(8,6,5,.85) 12%,#080605 30%)}
+.mirror-shade.r{left:100%;background:linear-gradient(90deg,rgba(8,6,5,.2) 0,rgba(8,6,5,.85) 12%,#080605 30%)}
 .backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(40px) brightness(.5) saturate(.95);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
 body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08) saturate(.6)}
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
@@ -546,6 +551,9 @@ body.intro .player{transform:translateY(110%)}
   <div class="scene" id="scene">
     <img class="photo" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="max(100vw, 133vh)"
          alt="My desk at night: a monitor and laptop, a yellow lamp, AKAI keys, an acoustic guitar, figures and stickers" draggable="false">
+    <img class="photo mirror l" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="133vh" alt="" aria-hidden="true" draggable="false">
+    <img class="photo mirror r" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="133vh" alt="" aria-hidden="true" draggable="false">
+    <div class="mirror-shade l"></div><div class="mirror-shade r"></div>
 
     <div class="spill mon" aria-hidden="true"></div>
     <div class="spill lap" aria-hidden="true"></div>
@@ -785,8 +793,9 @@ function mapQuad(el, q){
 }
 function layout(){ for (const id in QUADS) mapQuad(document.getElementById(id), QUADS[id]); }
 addEventListener('resize', layout);
-/* desktop: the photo always fills the window edge to edge. In short, wide windows some of it has to be
-   cropped; the crop is centred on the desk (top of the monitor to the keyboard). Phones scroll sideways. */
+/* desktop: the photo is as big as it can be while the whole desk (top of the monitor to the keyboard) stays
+   on screen. In wide windows the spare width shows the photo mirrored at each edge, fading into the dark,
+   so the room just carries on. Phones scroll sideways. */
 const BAND = [.1, .9];    // the part of the photo that must stay in view (top of monitor → keyboard)
 function frameScene(){
   if (portrait()){
@@ -796,7 +805,7 @@ function frameScene(){
   const vw = innerWidth, vh = innerHeight, avail = vh - 72 - 16;   // 72 = the player bar
   const coverH = (vw + 32) * .75;                   // fills the width
   const fitH = avail / (BAND[1] - BAND[0]);         // the whole desk just fits
-  const H = Math.max(coverH, vh + 20);   // always edge to edge, no side panels
+  const H = Math.max(Math.min(coverH, fitH), vh * .8);   // the whole desk fits; any spare width is filled by the mirrored photo
   const W = H * 4 / 3;
   scene.style.width = W.toFixed(1) + 'px'; scene.style.height = H.toFixed(1) + 'px';
   scene.classList.toggle('fit', W < vw + 2);
