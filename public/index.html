@@ -112,6 +112,25 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
 #monitor .mon-embed iframe{display:block;width:100%;height:100%;border:0}
 #monitor.embed .mon-embed{display:block}
 #monitor.embed .inner,#monitor.embed .bar{display:none}
+#monitor .mon-now{position:absolute;inset:0;display:none;grid-template-columns:400px minmax(0,1fr);gap:56px;padding:64px 72px;
+  background:radial-gradient(ellipse 80% 90% at 20% 30%,#2A2117 0%,#120E0B 55%,#070605 100%)}
+#monitor.now .mon-now{display:grid}
+#monitor.now .inner,#monitor.now .bar,#monitor.now .mon-embed{display:none}
+#mnCover{width:400px;height:400px;border-radius:14px;object-fit:cover;background:#1B1816;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mn-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.mn-main small{font-size:24px;color:var(--lamp);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mn-main h2{margin:14px 0 6px;font-size:64px;font-weight:500;line-height:1.05;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mn-main p{margin:0;font-size:32px;color:var(--dust);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mn-bar{margin-top:30px;height:8px;border-radius:4px;background:rgba(255,255,255,.14)}
+.mn-bar span{display:block;width:0;height:100%;border-radius:4px;background:var(--lamp)}
+.mn-times{display:flex;justify-content:space-between;margin-top:10px;font:22px var(--mono);color:var(--dim)}
+.mn-list{list-style:none;margin:26px 0 0;padding:0;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.mn-list button{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:16px;align-items:center;width:100%;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--paper);text-align:left;cursor:pointer;font-size:26px}
+.mn-list button:hover{background:rgba(245,164,67,.1)}
+.mn-list button.on{color:var(--lamp)}
+.mn-list .n{font:22px var(--mono);color:var(--dim)} .mn-list .on .n{color:var(--lamp)}
+.mn-list b{font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mn-list i{font-style:normal;font-size:21px;color:var(--dim);white-space:nowrap}
 #monitor.embed::after{background:linear-gradient(115deg,rgba(255,255,255,.05),rgba(255,255,255,0) 38%)}
 .screen::after{pointer-events:none}
 /* screen mode: the camera fills the window with one screen */
@@ -345,6 +364,17 @@ body.intro .player{transform:translateY(110%)}
       </div>
       <div class="bar"><span></span></div>
       <div class="mon-embed" id="monEmbed"></div>
+      <div class="mon-now" id="monNow">
+        <img id="mnCover" alt="">
+        <div class="mn-main">
+          <small id="mnCtx"></small>
+          <h2 id="mnTitle"></h2>
+          <p id="mnArtist"></p>
+          <div class="mn-bar"><span id="mnFill"></span></div>
+          <div class="mn-times"><span id="mnPos">0:00</span><span id="mnDur">0:00</span></div>
+          <ol class="mn-list" id="mnList"></ol>
+        </div>
+      </div>
     </div>
 
     <div class="screen" id="laptop" aria-hidden="true">
@@ -1025,8 +1055,8 @@ function plainEmbed(item){
   box.appendChild(f);
 }
 function openOnMonitor(item){
-  embedItem = item;
-  $('#monitor').classList.add('embed');
+  embedItem = item; nowMeta = null;
+  $('#monitor').classList.remove('now'); $('#monitor').classList.add('embed');
   showEmbedInBar(item);
   focusScreen('monitor');
   const uri = `spotify:${item.type}:${item.id}`;
@@ -1080,7 +1110,7 @@ async function renderLaptop(){
     $('#lpTitle').textContent = 'On Spotify';
     $('#lpHint').textContent = ownerSpErr ? `Your Spotify didn't load: ${ownerSpErr}` : OWNER_SP ? "You're logged in, so these play in full through the player below. Visitors get Spotify's player on the monitor." : 'Pick one to play it on the monitor. Log into Spotify in this browser for full songs.';
     if (!SHELF.length){ const p = document.createElement('p'); p.className = 'lp-empty'; p.textContent = OWNER_SP ? 'Choose what visitors see here in your dashboard, under Spotify.' : 'Nothing here yet.'; grid.appendChild(p); return; }
-    SHELF.forEach(it => grid.appendChild(card({ ...it, sub: it.type === 'playlist' && it.count != null ? `${it.count} songs` : (it.by || TYPE_LABEL[it.type] || '') }, () => OWNER_SP ? playSpotify(playBody(it)) : openOnMonitor(it))));
+    SHELF.forEach(it => grid.appendChild(card({ ...it, sub: it.type === 'playlist' && it.count != null ? `${it.count} songs` : (it.by || TYPE_LABEL[it.type] || '') }, () => OWNER_SP ? playSpotify(playBody(it), { ...it, ctx: TYPE_LABEL[it.type] || 'Spotify' }, true) : openOnMonitor(it))));
     return;
   }
   $('#lpTitle').textContent = 'My library';
@@ -1091,7 +1121,7 @@ async function renderLaptop(){
       SPLIB.playlists = SPLIB.playlists || (await spApiJson('/me/playlists?limit=50')).items.filter(Boolean);
       grid.innerHTML = '';
       SPLIB.playlists.forEach(pl => grid.appendChild(card({ name: pl.name, image: pl.images?.[0]?.url, sub: (pl.items?.total ?? pl.tracks?.total) != null ? `${pl.items?.total ?? pl.tracks?.total} songs` : 'Playlist' },
-        () => playSpotify({ context_uri: pl.uri }))));
+        () => playSpotify({ context_uri: pl.uri }, { type:'playlist', id: pl.id, name: pl.name, image: pl.images?.[0]?.url, url: pl.external_urls?.spotify, ctx:'Playlist' }, true))));
       if (!SPLIB.playlists.length) grid.innerHTML = '<p class="lp-empty">No playlists yet.</p>';
     } else {
       const path = lpSub === 'liked' ? '/me/tracks?limit=50' : '/me/player/recently-played?limit=50';
@@ -1099,7 +1129,7 @@ async function renderLaptop(){
       grid.innerHTML = ''; grid.classList.add('rows');
       const list = SPLIB[lpSub], uris = list.map(t => t.uri);
       list.forEach((t, i) => grid.appendChild(row({ name: t.name, image: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url, sub: t.artists.map(a => a.name).join(', '), right: fmt(t.duration_ms / 1000) },
-        () => playSpotify({ uris, offset: { position: i } }))));
+        () => playSpotify({ uris, offset: { position: i } }, { type:'list', name: lpSub === 'liked' ? 'Liked songs' : 'Recently played', ctx:'Your library', tracks: list, url: t.external_urls?.spotify }, false))));
       if (!list.length) grid.innerHTML = '<p class="lp-empty">Nothing here yet.</p>';
     }
   } catch (e) { grid.innerHTML = ''; const p = document.createElement('p'); p.className = 'lp-empty'; p.textContent = e.message; grid.appendChild(p); }
@@ -1146,7 +1176,7 @@ function startSdk(){
   };
   const sc = document.createElement('script'); sc.src = 'https://sdk.scdn.co/spotify-player.js'; sc.async = true; document.body.appendChild(sc);
 }
-async function playSpotify(body){
+async function playSpotify(body, meta, zoom){
   $('#lpHint').textContent = 'Starting on the site player…';
   try {
     if (!spPlayer) throw new Error('Spotify player is still loading. Try again in a second.');
@@ -1161,21 +1191,83 @@ async function playSpotify(body){
     if (!r.ok && r.status !== 204){ const d = await r.json().catch(() => ({})); throw new Error(d.error?.message ? 'Spotify said: ' + d.error.message : 'Spotify would not play that.'); }
     if (SRC === 'local'){ audio.pause(); clearInterval(simTimer); }
     SRC = 'spotify'; $('#likeBtn').disabled = true; resetEmbed();
-    $('#lpHint').textContent = 'Playing through the player below.';
-  } catch (e) { $('#lpHint').textContent = e.message; }
+    $('#lpHint').textContent = 'Playing in full through the player below.';
+    if (meta) showNow(meta, body, zoom);
+  } catch (e) {
+    $('#lpHint').textContent = e.message;
+    // couldn't play here: fall back to Spotify's own player on the monitor
+    if (meta && meta.id && meta.type !== 'list') openOnMonitor(meta);
+  }
+}
+
+/* the monitor while you play in full: cover, song, progress and what's in the playlist */
+let nowMeta = null, nowBody = null;
+async function showNow(meta, body, zoom){
+  nowMeta = meta; nowBody = body; embedItem = { ...meta, url: meta.url || (meta.id ? `https://open.spotify.com/${meta.type}/${meta.id}` : 'https://open.spotify.com') };
+  $('#monitor').classList.remove('embed'); $('#monitor').classList.add('now');
+  $('#mnCtx').textContent = `${meta.ctx || 'Playing'} · ${meta.name}`;
+  if (meta.image) $('#mnCover').src = meta.image;
+  if (zoom) focusScreen('monitor');
+  let tracks = meta.tracks || null;
+  try {
+    if (!tracks && meta.type === 'playlist'){
+      const d = await spApiJson(`/playlists/${meta.id}/items?limit=50`);
+      tracks = d.items.map(x => x.item || x.track).filter(t => t && t.uri);
+    } else if (!tracks && meta.type === 'album'){
+      const d = await spApiJson(`/albums/${meta.id}/tracks?limit=50`);
+      tracks = d.items.map(t => ({ ...t, album: { images: meta.image ? [{ url: meta.image }] : [] } }));
+    }
+  } catch {}
+  renderNowList(tracks || []);
+}
+function renderNowList(tracks){
+  const ol = $('#mnList'); ol.innerHTML = '';
+  tracks.forEach((t, i) => {
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.dataset.uri = t.uri;
+    b.innerHTML = '<span class="n"></span><b></b><i></i>';
+    b.querySelector('.n').textContent = String(i + 1).padStart(2, '0');
+    b.querySelector('b').textContent = t.name + ' · ' + (t.artists || []).map(a => a.name).join(', ');
+    b.querySelector('i').textContent = fmt((t.duration_ms || 0) / 1000);
+    b.addEventListener('click', () => {
+      const body = nowBody && nowBody.context_uri ? { context_uri: nowBody.context_uri, offset: { position: i } } : { uris: tracks.map(x => x.uri), offset: { position: i } };
+      playSpotify(body, null, false);
+    });
+    li.appendChild(b); ol.appendChild(li);
+  });
+  markNow();
+}
+function markNow(){
+  const cur = spPlayer && SP.uri;
+  document.querySelectorAll('#mnList button').forEach(b => {
+    const on = b.dataset.uri === cur; b.classList.toggle('on', on);
+    if (on && !b.dataset.seen){ b.dataset.seen = '1'; b.scrollIntoView({ block:'nearest' }); }
+    if (!on) delete b.dataset.seen;
+  });
+}
+function drawNow(){
+  if (SRC !== 'spotify' || !nowMeta) return;
+  const p = spPos(), d = SP.dur || 0;
+  $('#mnFill').style.width = (d ? Math.min(100, p / d * 100) : 0) + '%';
+  $('#mnPos').textContent = fmt(p); $('#mnDur').textContent = fmt(d);
 }
 function onSpState(state){
   if (!state || SRC !== 'spotify') return;
   const t = state.track_window.current_track;
-  Object.assign(SP, { pos: state.position / 1000, dur: state.duration / 1000, paused: state.paused, ts: Date.now(), id: t.id || t.uri });
+  Object.assign(SP, { pos: state.position / 1000, dur: state.duration / 1000, paused: state.paused, ts: Date.now(), id: t.id || t.uri, uri: t.uri });
   playing = !state.paused;
   $('#player').classList.toggle('playing', playing); $('#playBtn').setAttribute('aria-label', playing ? 'Pause' : 'Play');
   $('#trackTitle').textContent = t.name; $('#trackArtist').textContent = t.artists.map(a => a.name).join(', ') + ' · Spotify';
   const img = t.album.images[0]?.url; if (img && $('#cover').src !== img) $('#cover').src = img;
   peaks = fakePeaks(SP.id); draw();
+  if (nowMeta){
+    $('#mnTitle').textContent = t.name; $('#mnArtist').textContent = t.artists.map(a => a.name).join(', ') + (t.album?.name ? ' · ' + t.album.name : '');
+    if (img && $('#mnCover').src !== img) $('#mnCover').src = img;
+    markNow(); drawNow();
+  }
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: t.artists.map(a => a.name).join(', '), artwork: img ? [{ src: img, sizes: '640x640', type: 'image/jpeg' }] : [] });
 }
-setInterval(() => { if (SRC !== 'local' && !SP.paused) draw(); }, 500);
+setInterval(() => { if (SRC !== 'local' && !SP.paused){ draw(); drawNow(); } }, 500);
 if (ownerPw){
   spToken().then(() => { OWNER_SP = true; laptopIsSpotify(); startSdk(); })
     .catch(e => { ownerSpErr = e.message; if ($('#laptop').classList.contains('sp')) renderLaptop(); });
