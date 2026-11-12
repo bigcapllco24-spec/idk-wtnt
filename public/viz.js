@@ -1,5 +1,5 @@
 /* idk∗wtnt visualizer engine
-   A WebGL canvas for the monitor: fourteen scenes, one per song, in one of eight colour sets, coloured from the cover art,
+   A WebGL canvas for the monitor: seventeen scenes (three of them stick-figure dancers, in five sceneries), one per song, in one of eight colour sets, coloured from the cover art,
    pulsing on the beat. For your own uploads the beat comes from the real audio; Spotify doesn't let
    websites hear its audio, so for Spotify a tempo clock follows the song's position instead.
 
@@ -8,11 +8,13 @@
    Viz.clock(() => seconds)         beat from a playback position (Spotify)
    Viz.audio(audioElement)          beat from real audio (uploads)
    Viz.play(true | false)           run / idle
-   Viz.set({scene, speed, punch, bpm, palette})   tuning: scene 'auto' or 0-13, palette [[r,g,b] x3] (0-1)
+   Viz.set({scene, speed, punch, bpm, palette})   tuning: scene 'auto' or 0-16, palette [[r,g,b] x3] (0-1)
    Viz.SCENES                       the scene names, in number order
    Viz.SETS                         the colour sets [{name, hex:[3]}]
    Viz.song(info, {first, onDark})  a new song: fade out over 2 beats, pick its scene and colours, fade back in
-   Viz.prefs({colours, scene})      colours: 'auto' or a set index; scene: 'shuffle' or 'lock' (keeps the current one)
+   Viz.shuffle(onSwap)              mid-song: a different scene (and scenery) now, with a quick dip; colours stay
+   Viz.prefs({colours, scene, scenery})  colours: 'auto' or a set index; scene: 'shuffle' or 'lock' (keeps the current one);
+                                    scenery (behind the stick figures): 'auto' (new each song) or an index into Viz.SCENERY
    Viz.now()                        {scene, set} names for what's showing
 */
 (function(){
@@ -22,7 +24,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-uniform vec2 uRes;uniform float uTime,uBeat,uBass,uHigh,uFade;uniform int uScene;uniform vec3 uC1,uC2,uC3;
+uniform vec2 uRes;uniform float uTime,uBeat,uBass,uHigh,uFade,uPhase;uniform int uScene,uBg;uniform vec3 uC1,uC2,uC3;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.02;a*=.5;}return v;}
@@ -76,20 +78,112 @@ vec3 hexes(vec2 uv){vec2 p=uv*7.;vec2 r=vec2(1.,1.73),h=r*.5;vec2 a=mod(p,r)-h,b
   return pal(dist+uTime*.05)*(smoothstep(0.,.05,edge)*lit*.9+smoothstep(.05,0.,edge)*.25);}
 vec3 opart(vec2 uv){float w=sin(uv.x*3.+uTime*.6)*.15+sin(uv.y*2.+uTime*.4)*.1+fbm(uv*1.5+uTime*.1)*.3;
   float l=smoothstep(-.2,.2,sin((uv.y+w)*40.+uBass*2.));return mix(uC1*.08,pal(uv.x*.3+uTime*.05)*(1.+uBeat*.5),l);}
+
+/* ---- stick figures: one dancer, its pose worked out from the beat (uPhase counts beats) ---- */
+float sgd(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);return length(pa-ba*h);}
+vec2 dir(float a){return vec2(sin(a),cos(a));}
+float leg(vec2 p,vec2 h,vec2 f,float s){vec2 v=f-h;float L=min(length(v),.499);vec2 n=normalize(v);
+  vec2 k=h+n*L*.5+vec2(-n.y,n.x)*s*sqrt(max(0.,.0625-L*L*.25));return min(sgd(p,h,k),sgd(p,k,h+n*L));}
+float fig(vec2 p,float ph,float mv){
+  float d=exp(-fract(ph)*4.),s=sin(ph*3.1416),sg=step(.5,fract(ph*.25))*2.-1.;
+  vec2 hip=vec2(.03*s,.46-.06*d),fl=vec2(-.11,0.),fr=vec2(.11,0.);float lean=.1*s;
+  float ua=1.2,fa=.4,ub=-1.2,fb=-.4;
+  if(mv<.5){ua=mix(1.7,.2,d);fa=mix(-.3,.1,d);ub=-2.5;fb=2.4;}                                  // fist pump
+  else if(mv<1.5){ua=.5+.4*s;fa=.15+.7*s;ub=-.5+.4*s;fb=-.15+.7*s;hip.x=.05*s;}                    // hands up, sway
+  else if(mv<2.5){ua=2.3+.5*s;fa=1.1+.6*s;ub=-2.3+.5*s;fb=-1.1+.6*s;                               // shuffle
+    fr.y=.08*max(0.,s);fl.y=.08*max(0.,-s);fr.x+=.05*s;fl.x+=.05*s;}
+  else if(mv<3.5){hip.x=.04*sg;lean=.12*sg;fr.x+=.05*max(0.,sg);fl.x-=.05*max(0.,-sg);              // disco point
+    if(sg>0.){ua=.5;fa=.45;ub=-2.5;fb=2.4;}else{ub=-.5;fb=-.45;ua=2.5;fa=-2.4;}}
+  else{float j=.12*(1.-pow(2.*fract(ph)-1.,2.));ua=.45-.25*d;fa=.3;ub=-.45+.25*d;fb=-.3;           // jump
+    hip.y=.44+j;fl.y=fr.y=j*.55;}
+  vec2 nk=hip+.3*dir(lean),hc=nk+.1*dir(lean*1.4),sh=hip+.27*dir(lean);
+  vec2 er=sh+.16*dir(ua),el=sh+.16*dir(ub);
+  float r=min(sgd(p,hip,nk),abs(length(p-hc)-.065));
+  r=min(r,min(sgd(p,sh,er),sgd(p,er,er+.15*dir(fa))));
+  r=min(r,min(sgd(p,sh,el),sgd(p,el,el+.15*dir(fb))));
+  return min(r,min(leg(p,hip,fr,1.),leg(p,hip,fl,-1.)));}
+float lw(){return max(.0045,1.6/uRes.y);}
+
+/* ---- scenery behind the stick figures (uBg): 0 club (each scene's own stage), 1 city, 2 beach, 3 forest, 4 space ---- */
+vec3 scenery(vec2 uv,float hz){vec3 c=vec3(0.);float up=uv.y-hz;
+  if(uBg==1){                                                         // city rooftop at night
+    c=mix(pal(.15)*.22,uC1*.03,clamp(up*1.6,0.,1.));
+    c+=vec3(1.,.97,.9)*(smoothstep(.062,.058,length(uv-vec2(.62,.3)))+exp(-length(uv-vec2(.62,.3))*9.)*.12);
+    for(int L=0;L<2;L++){float fl=float(L),w=mix(.075,.12,fl),x=uv.x/w+fl*3.7+uTime*.01*(fl+1.),id=floor(x);
+      float top=hz+.03+hash(vec2(id,fl+2.))*mix(.44,.22,fl);
+      if(uv.y<top){c=mix(uC1*.06,vec3(.008),fl);
+        vec2 wp=vec2(fract(x)*w/mix(.018,.026,fl),up/mix(.026,.036,fl)),wi=floor(wp),wf=fract(wp);
+        float on=step(.58,hash(wi+vec2(id*7.,fl*3.)))*step(.12,fract(x))*step(fract(x),.88)*step(.25,wf.x)*step(wf.x,.75)*step(.3,wf.y)*step(wf.y,.8);
+        c+=pal(hash(wi+id)*.5+uTime*.02)*on*mix(.4,.7,fl)*(1.+uBeat*step(.85,hash(wi+id+3.)));}}
+    if(up<0.)c=vec3(.012)+uC1*.04*exp(up*8.);}
+  else if(uBg==2){                                                    // beach at sunset
+    c=mix(pal(.62)*.75,uC1*.12,smoothstep(0.,.75,up));vec2 sp=uv-vec2(0.,hz+.1);
+    float sun=smoothstep(.2,.195,length(sp))*(sp.y>0.?1.:step(.45,fract(uv.y*34.-uTime*.4)));c=mix(c,mix(uC3,pal(.5),.3)*1.2,sun*step(0.,up));
+    for(int i=0;i<2;i++){float fi=float(i);vec2 pp=uv-vec2(mix(-.72,.78,fi),hz);if(fi>.5)pp.x=-pp.x;             // two palms
+      float tr=sgd(pp,vec2(0.),vec2(.05+.02*sin(uTime*.5),.42));float lv=9.;
+      for(int k=0;k<5;k++){float a=-1.9+float(k)*.85+.08*sin(uTime*.9+float(k));vec2 t=vec2(.05,.42);lv=min(lv,sgd(pp,t,t+.2*vec2(sin(a),cos(a))-vec2(0.,.05)));}
+      c=mix(c,vec3(.01),smoothstep(.014,.008,tr)+smoothstep(.012,.006,lv)-smoothstep(.014,.008,tr)*smoothstep(.012,.006,lv));}
+    if(up<0.){float sea=up>-.09?1.:0.;float st=exp(-abs(uv.x)*5.)*step(.55,noise(vec2(uv.x*7.,uv.y*90.+uTime*2.)));
+      c=sea>0.?uC1*.12+mix(uC3,pal(.5),.3)*st*.7:mix(pal(.62)*.18,vec3(.02),clamp(-(up+.09)*3.,0.,1.));}}
+  else if(uBg==3){                                                    // forest with fireflies
+    c=mix(pal(.3)*.16,vec3(.004),clamp(up*1.3,0.,1.));c+=vec3(.9,.95,1.)*exp(-length(uv-vec2(-.55,.3))*7.)*.18;
+    for(int L=0;L<3;L++){float fl=float(L),w=mix(.07,.16,fl/2.),x=uv.x/w+fl*1.9,id=floor(x),fx=fract(x)-.5;
+      float top=hz+mix(.38,.22,fl/2.)+hash(vec2(id,fl))*.18,y=top-uv.y;
+      float pine=y>0.&&uv.y>hz-.05?step(abs(fx)*w*mix(3.2,2.4,fl/2.),y*(.75+.25*step(.5,fract(y/w*2.5)))):0.;
+      c=mix(c,pal(.3)*mix(.07,.0,fl/2.)+vec3(.004),pine);}
+    vec2 g=uv*7.;vec2 gi=floor(g);vec2 o=.5+.38*vec2(sin(uTime*.7+hash(gi)*6.3),cos(uTime*.5+hash(gi+1.)*6.3));
+    float ff=exp(-length(fract(g)-o)*28.)*step(.55,hash(gi+5.))*(.5+.5*sin(uTime*2.+hash(gi)*9.+uBeat*2.));c+=mix(uC3,vec3(.9,1.,.5),.4)*ff*1.2;
+    if(up<0.)c=mix(c,vec3(.01)+pal(.3)*.03,step(up,-.04));}
+  else{                                                               // space, on a little moon
+    vec2 g=floor(uv*uRes.y*.5);float st=step(.994,hash(g))*(.5+.5*sin(uTime*2.+hash(g+1.)*20.));
+    c=vec3(st)+pal(fbm(uv*2.+uTime*.02)*1.2)*pow(fbm(uv*2.5+vec2(uTime*.01,0.)),3.)*.9;
+    vec2 pp=uv-vec2(.5,.22);float pr=length(pp);float pl=smoothstep(.17,.165,pr);
+    c=mix(c,pal(.4+pp.y*2.)*(.25+.75*clamp(dot(normalize(vec3(pp,sqrt(max(0.,.0289-pr*pr)))),normalize(vec3(-.6,.5,.6))),0.,1.)),pl);
+    vec2 rp=pp*mat2(.94,.34,-.34,.94);float ring=abs(length(rp*vec2(1.,4.))-.27);c+=uC3*smoothstep(.02,.0,ring)*(rp.y<0.||pr>.17?1.:0.)*.8;
+    if(up<0.)c=vec3(.05)+.04*noise(uv*vec2(14.,40.))+pal(.4)*.03-.04*smoothstep(.03,.0,abs(length((uv-vec2(-.3,hz-.1))*vec2(1.,3.))-.12));}
+  return c;}
+vec3 dancers(vec2 uv){vec3 c=vec3(0.);float fy=-.34,w=lw();
+  if(uBg>0)c=scenery(uv,fy+.06);else for(int i=0;i<3;i++){float fi=float(i);vec2 q=uv-vec2((fi-1.)*.62+.15*sin(uTime*.4+fi*2.),.62);
+    c+=pal(fi*.33+uTime*.03)*smoothstep(.3,0.,abs(atan(q.x,-q.y)))*.16*(1.+uBeat*.8)*smoothstep(-.6,.5,uv.y);}
+  vec2 p=uv;float rf=1.;if(p.y<fy){p.y=2.*fy-p.y;rf=.3*smoothstep(-.62,fy,uv.y);}
+  float sc=.5,mb=floor(uPhase/16.);
+  for(int i=0;i<5;i++){float fi=float(i),k=abs(fi-2.);vec2 q=(p-vec2((fi-2.)*.35,fy))/sc;if(fi<2.)q.x=-q.x;
+    float d=fig(q,uPhase,mod(mb+k,5.))*sc;
+    c+=pal(k*.3+uTime*.04)*(smoothstep(w,w*.4,d)*1.3+exp(-d*55.)*.35)*rf*(1.+uBeat*.3);}
+  return c+uC2*smoothstep(.004,0.,abs(uv.y-fy))*(uBg>0?.12:.35);}
+vec3 solo(vec2 uv){vec3 c=vec3(0.);float r=length(uv-vec2(0.,-.05)),w=lw()*1.4;
+  float f=fract(r*3.-uPhase*.5);if(uBg>0)c=scenery(uv,-.36)*.85;else c+=pal(r+uTime*.05)*exp(-f*10.)*.22*smoothstep(1.,.1,r);
+  float mv=mod(floor(uPhase/8.),5.),sc=.78;vec2 q=(uv-vec2(0.,-.43))/sc;
+  for(int k=3;k>=0;k--){float fk=float(k);float d=fig(q,uPhase-fk*.09,mv)*sc;
+    c+=pal(fk*.17+uTime*.05)*(smoothstep(w,w*.4,d)*(fk<.5?1.4:.45/fk)+exp(-d*40.)*(fk<.5?.45:.08))*(1.+uBeat*.4);}
+  return c;}
+vec3 crowd(vec2 uv){vec2 q0=uv-vec2(0.,.56);vec3 c=uBg>0?scenery(uv,-.2):uC1*.06+pal(uTime*.05)*exp(-length(q0)*2.6)*(.7+.7*uBeat);
+  for(int i=0;i<5;i++){float fi=float(i),a=(fi-2.)*.38+.28*sin(uTime*.6+fi*1.7);
+    c+=pal(fi*.2+uTime*.03)*exp(-abs(q0.x*cos(a)+q0.y*sin(a))*28.)*(uBg>0?.12:.3)*(.6+uBeat)*step(q0.y,0.);}
+  for(int row=0;row<2;row++){float fr=float(row),sc=mix(.3,.5,fr),base=mix(-.3,-.62,fr),sp=mix(.16,.26,fr);
+    float x=uv.x/sp+fr*.5,id=floor(x+.5),dm=9.;
+    for(int k=-1;k<=1;k++){float j=id+float(k),h=hash(vec2(j,fr*7.+1.));vec2 q=vec2((x-j)*sp,uv.y-base)/sc;
+      if(h>.5)q.x=-q.x;float mv=h<.45?4.:(h<.75?1.:0.);
+      dm=min(dm,fig(q,uPhase+(h<.45?0.:h*.3),mv)*sc);}
+    float w=mix(.011,.019,fr),m=smoothstep(w,w*.6,dm);
+    c=mix(c,c*.12*(1.-fr),m);c+=pal(fr*.3+uTime*.04)*smoothstep(w*2.2,w,dm)*(1.-m)*.35;}
+  return c;}
 void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   if(uScene==0)c=tunnel(uv);else if(uScene==1)c=grid(uv);else if(uScene==2)c=flow(uv);else if(uScene==3)c=kaleido(uv);
   else if(uScene==4)c=ink(uv);else if(uScene==5)c=caustics(uv);else if(uScene==6)c=lava(uv);else if(uScene==7)c=curtains(uv);
   else if(uScene==8)c=cells(uv);else if(uScene==9)c=topo(uv);else if(uScene==10)c=truchet(uv);else if(uScene==11)c=moire(uv);
-  else if(uScene==12)c=hexes(uv);else c=opart(uv);
+  else if(uScene==12)c=hexes(uv);else if(uScene==13)c=opart(uv);
+  else if(uScene==14)c=dancers(uv);else if(uScene==15)c=solo(uv);else c=crowd(uv);
   c+=uHigh*.06*hash(gl_FragCoord.xy+uTime);c*=1.-.35*dot(uv*.8,uv*.8);gl_FragColor=vec4(c*uFade,1.);}`;
 
-  const SCENES = ['tunnel','grid','flow','kaleido','ink','caustics','lava','curtains','cells','topo','truchet','moire','hexes','op-art'];
+  const SCENERY = ['Club', 'City', 'Beach', 'Forest', 'Space'];
+  const SCENES = ['tunnel','grid','flow','kaleido','ink','caustics','lava','curtains','cells','topo','truchet','moire','hexes','op-art','dancers','solo','crowd'];
   const SETS = [
     ['Aurora', '#296EFF', '#1FDBC7', '#4FFF78'], ['Ocean', '#0A2A6B', '#00B4D8', '#90E0EF'], ['Sunset', '#FF5E3A', '#FF2D95', '#FFC86B'],
     ['Ember', '#7A0C00', '#FF3D00', '#FFB300'], ['Acid', '#00FF85', '#B6FF00', '#F4FF5E'], ['Bloom', '#8A5CFF', '#FF7AD9', '#FFD1F0'],
     ['Ultraviolet', '#6A00FF', '#FF006E', '#00D1FF'], ['Mono', '#1E1E1E', '#8A8A8A', '#FFFFFF'],
   ].map(([name, ...hex]) => ({ name, hex, rgb: hex.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)) }));
-  const S = { held:false, fps:60, gl:null, fade:1, fadeTo:1, fadeRate:2, set:0, coverSet:0, hist:[], songScene:2, prefs:{ colours:'auto', scene:'shuffle' }, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
+  const S = { bg:0, bgHist:[], phase:0, held:false, fps:60, gl:null, fade:1, fadeTo:1, fadeRate:2, set:0, coverSet:0, hist:[], songScene:2, prefs:{ colours:'auto', scene:'shuffle', scenery:'auto' }, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
     pal:[[.16,.43,1],[.12,.86,.78],[.31,1,.47]], palTo:null, base:0, cfg:{ scene:'auto', speed:1, punch:1, bpm:124 }, getPos:null, an:null, data:null, avg:0, env:0, lastHit:0, bpm:124 };
 
   function compile(gl, type, src){ const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -107,7 +201,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
       const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['uRes','uTime','uBeat','uBass','uHigh','uFade','uScene','uC1','uC2','uC3'].forEach(n => S.u[n] = gl.getUniformLocation(pr, n));
+      ['uRes','uTime','uBeat','uBass','uHigh','uFade','uPhase','uScene','uBg','uC1','uC2','uC3'].forEach(n => S.u[n] = gl.getUniformLocation(pr, n));
       gl.uniform2f(S.u.uRes, cv.width, cv.height);
     } catch (e) { console.warn('viz', e); return false; }
     S.gl = gl; S.cv = cv; el.prepend(cv);   // under the now-playing text
@@ -143,16 +237,37 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   }
   function applySet(k){ S.set = k; S.palTo = SETS[k].rgb.map(c => c.slice()); if (S.onPalette) S.onPalette(SETS[k].rgb); }
 
-  function pickScene(){
-    if (S.prefs.scene === 'lock') return S.songScene;
+  function pickScene(force){
+    if (S.prefs.scene === 'lock' && !force) return S.songScene;
     const n = SCENES.length, avoid = S.hist.slice(-4); let k, tries = 0;
-    do { k = Math.floor(Math.random() * n); } while (avoid.includes(k) && ++tries < 50);
+    do { k = Math.floor(Math.random() * n); } while ((avoid.includes(k) || k === S.songScene) && ++tries < 50);
     return k;
+  }
+  // the scenery behind the stick figures: a new one each song, or the one you picked
+  function pickScenery(){
+    if (S.prefs.scenery !== 'auto'){ S.bg = +S.prefs.scenery; return; }
+    let k, tries = 0; do { k = Math.floor(Math.random() * SCENERY.length); } while ((k === S.bg) && ++tries < 20);
+    S.bg = k;
+  }
+  // mid-song: swap to another scene (and scenery) with a quick dip, same song and colours.
+  // With 'keep this one' on, the new scene becomes the one that's kept.
+  function shuffle(onSwap){
+    const go = () => {
+      S.songScene = pickScene(true); S.hist.push(S.songScene); if (S.hist.length > 8) S.hist.shift();
+      if (S.prefs.scenery === 'auto') pickScenery();
+      S.fadeTo = 1; S.fadeRate = 1 / .6;
+      if (onSwap) onSwap(now());
+    };
+    if (!S.gl){ go(); return; }
+    S.fadeTo = 0; S.fadeRate = 1 / .3;                // dip out over 0.3 s
+    clearTimeout(S.songT); S.songT = setTimeout(go, 320);
+    if (!S.run) loop();
   }
   function song(info, opts){
     opts = opts || {};
     const go = () => {
       S.songScene = pickScene(); S.hist.push(S.songScene); if (S.hist.length > 8) S.hist.shift();
+      pickScenery();
       if (S.prefs.colours === 'auto'){ S.coverSet = S.set; if (info && info.cover) palette(info.cover); }
       else applySet(+S.prefs.colours);
       if (opts.onDark) opts.onDark(now());
@@ -166,10 +281,11 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   function prefs(p){
     Object.assign(S.prefs, p || {});
     if (p && p.scene === 'lock') S.songScene = S.scene != null ? S.scene : S.songScene;
+    if (p && 'scenery' in p && p.scenery !== 'auto') S.bg = +p.scenery;
     if (p && 'colours' in p){ applySet(p.colours === 'auto' ? S.coverSet : +p.colours); }
     if (S.gl && !S.run) loop();
   }
-  function now(){ return { scene: SCENES[S.songScene], set: SETS[S.set].name, prefs: { ...S.prefs } }; }
+  function now(){ return { scene: SCENES[S.songScene], set: SETS[S.set].name, scenery: SCENERY[S.bg], prefs: { ...S.prefs } }; }
   function track(info){
     let h = 0; const id = String(info && (info.id || info.cover) || Math.random()); for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0;
     S.base = Math.abs(h) % SCENES.length; S.env = 0;
@@ -210,13 +326,16 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     }
     beat = Math.min(2, beat * S.cfg.punch); bass *= S.cfg.punch; S.beat = beat;
     S.time += dt * (S.run ? 1 : .15) * S.cfg.speed;
+    // the dancers' beat count: locked to the song clock, or free-running at the tempo (nudged onto each kick with your own audio)
+    if (S.run && !S.an && S.getPos) S.phase = Math.max(0, pos) * S.cfg.bpm / 60;
+    else { S.phase += dt * S.cfg.bpm / 60 * (S.run ? 1 : .3); if (S.an && S.lastHit === now) S.phase += (Math.round(S.phase) - S.phase) * .6; }
     const bars = Math.floor(Math.max(0, pos) * S.cfg.bpm / 60 / 64);
     gl.uniform1f(S.u.uTime, S.time); gl.uniform1f(S.u.uBeat, beat); gl.uniform1f(S.u.uBass, bass); gl.uniform1f(S.u.uHigh, high);
     S.scene = S.cfg.scene === 'auto' ? S.songScene : +S.cfg.scene;
     S.fade += Math.sign(S.fadeTo - S.fade) * Math.min(Math.abs(S.fadeTo - S.fade), dt * S.fadeRate);
     if (S.palTo){ let done = true; S.pal = S.pal.map((c, i) => c.map((v, j) => { const t = S.palTo[i][j], nv = v + (t - v) * Math.min(1, dt * 3); if (Math.abs(t - nv) > .002) done = false; return nv; })); if (done) S.palTo = null; }
-    gl.uniform1f(S.u.uFade, S.fade);
-    gl.uniform1i(S.u.uScene, S.scene);
+    gl.uniform1f(S.u.uFade, S.fade); gl.uniform1f(S.u.uPhase, S.phase % 4096);
+    gl.uniform1i(S.u.uScene, S.scene); gl.uniform1i(S.u.uBg, S.bg);
     gl.uniform3fv(S.u.uC1, S.pal[0]); gl.uniform3fv(S.u.uC2, S.pal[1]); gl.uniform3fv(S.u.uC3, S.pal[2]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     if (S.run || S.palTo || Math.abs(S.fade - S.fadeTo) > .001) S.raf = requestAnimationFrame(frame);
@@ -228,5 +347,5 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   function set(c){ Object.assign(S.cfg, c || {}); if (c && c.palette) S.pal = c.palette; if (S.gl && !S.run) loop(); }
   function size(w, h){ if (!S.gl) return; S.cv.width = w; S.cv.height = h; S.gl.viewport(0, 0, w, h); S.gl.uniform2f(S.u.uRes, w, h); if (!S.run) loop(); }
   function state(){ return { ...S.cfg, palette: S.pal, scene_now: S.scene, beat: S.beat || 0, level: S.level || 0 }; }
-  window.Viz = { SCENES, SETS, song, prefs, now, onCover(fn){ S.onCover = fn; }, mount, track, clock, audio, play, set, state, size, hold, quality, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
+  window.Viz = { SCENES, SETS, SCENERY, song, shuffle, prefs, now, onCover(fn){ S.onCover = fn; }, mount, track, clock, audio, play, set, state, size, hold, quality, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
 })();

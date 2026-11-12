@@ -693,7 +693,7 @@ body.intro .player{transform:translateY(110%)}
         <div class="vz-card" id="vzCard" aria-live="polite"><small id="vzcNum"></small><b id="vzcTitle"></b><span id="vzcArtist"></span><div class="vz-chips"><i id="vzcScene"></i><i id="vzcSet"></i></div></div>
         <div class="vz-ctl" id="vzCtl">
           <div class="vz-row"><span class="vz-lbl">COLOURS</span><button class="vz-auto" data-col="auto" aria-pressed="true">Auto</button><span id="vzSets" class="vz-sets"></span></div>
-          <div class="vz-row"><span class="vz-lbl">SCENES</span><button data-scn="shuffle" aria-pressed="true">New every song</button><button data-scn="lock" aria-pressed="false">Keep this one</button><span class="vz-st" id="vzSt"></span></div>
+          <div class="vz-row"><span class="vz-lbl">SCENES</span><button data-scn="shuffle" aria-pressed="true">New every song</button><button data-scn="lock" aria-pressed="false">Keep this one</button><button data-act="shuf" title="Shuffle visuals now (S)">&#x21bb; Shuffle</button><span class="vz-st" id="vzSt"></span></div>
         </div>
       </div>
       <div class="mon-now" id="monNow">
@@ -1835,7 +1835,8 @@ function vizStatus(now){
   now = now || Viz.now();
   $('#vzcScene').textContent = now.scene; $('#vzcSet').textContent = now.set;
   const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
-  $('#vzSt').textContent = cap(now.scene) + ' · ' + now.set;
+  const dance = /^(dancers|solo|crowd)$/.test(now.scene);
+  $('#vzSt').textContent = cap(now.scene) + ' · ' + now.set + (dance ? ' · ' + now.scenery : '');
   document.querySelectorAll('#vzCtl [data-col]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.col === String(now.prefs.colours))));
   document.querySelectorAll('#vzCtl [data-scn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scn === now.prefs.scene)));
 }
@@ -1850,9 +1851,14 @@ if (window.Viz){
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.col) Viz.prefs({ colours: b.dataset.col === 'auto' ? 'auto' : +b.dataset.col });
     if (b.dataset.scn) Viz.prefs({ scene: b.dataset.scn });
+    if (b.dataset.act === 'shuf'){ Viz.shuffle(() => vizStatus()); return; }
     save();
   });
   Viz.onCover(() => setTimeout(() => vizStatus(), 0));
+  // S shuffles the visuals while you're looking at the monitor
+  addEventListener('keydown', (e) => {
+    if ((e.key === 's' || e.key === 'S') && !e.metaKey && !e.ctrlKey && vizSrc && inRoom === 'screen-monitor' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) Viz.shuffle(() => vizStatus());
+  });
   vizStatus();
 }
 function clubLights(on){
