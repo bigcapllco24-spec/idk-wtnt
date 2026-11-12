@@ -334,19 +334,59 @@ body:not(.screen-mode) #laptop .os-tr .eq i{animation-play-state:paused}
 #monViz.carding .vz-card{opacity:1}
 #monViz.carding .vz-now{opacity:0}
 .vz-now{transition:opacity .6s ease}
-/* the visuals controls: on the monitor, shown when you zoom in on it */
-.vz-ctl{position:absolute;right:44px;top:84px;display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:18px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .4s ease}
-body.screen-mode #monitor.active .vz-ctl{opacity:1;pointer-events:auto}
-.vz-row{display:flex;align-items:center;gap:10px}
-.vz-lbl{width:104px;font:500 15px var(--mono);letter-spacing:.12em;color:#B3B3B3}
-.vz-ctl button{height:44px;padding:0 18px;border-radius:22px;border:2px solid rgba(255,255,255,.25);background:transparent;color:#FFFFFF;font:500 18px var(--sans);cursor:pointer}
-.vz-ctl button[aria-pressed=true]{background:#FFFFFF;color:#000000;border-color:#FFFFFF}
-.vz-sets{display:flex;gap:8px}
-.vz-sets button{width:44px;padding:0;border-radius:50%}
+/* the deck: zoom in on the monitor and a panel slides in on the right with the visuals and the songs.
+   On the desk view it's gone and the monitor is all visualizer. (No backdrop blur: it would re-blur the moving visuals every frame.) */
+#monViz{--k:1;--dt:64px;--acc:#FFFFFF}
+.vz-deck{position:absolute;right:28px;top:var(--dt);bottom:28px;width:calc(var(--k)*420px);box-sizing:border-box;display:flex;flex-direction:column;
+  border-radius:calc(var(--k)*22px);background:rgba(9,9,11,.8);border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 70px rgba(0,0,0,.55);
+  opacity:0;transform:translateX(40px);pointer-events:none;transition:opacity .45s ease,transform .45s cubic-bezier(.2,.7,.2,1);overflow:hidden;overflow:clip}
+body.screen-mode #monitor.active .vz-deck{opacity:1;transform:none;pointer-events:auto}
+body.moving .vz-deck{transition:none}
+.vd-head{height:calc(var(--k)*196px);box-sizing:border-box;flex-shrink:0;padding:calc(var(--k)*20px) calc(var(--k)*22px) 0;display:flex;flex-direction:column;gap:calc(var(--k)*14px);border-bottom:1px solid rgba(255,255,255,.1)}
+.vd-lbl{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:500 calc(var(--k)*14px) var(--mono);letter-spacing:.16em;color:#9A9A9A;white-space:nowrap}
+.vd-st,.vd-ctx{font:600 calc(var(--k)*15px) var(--sans);letter-spacing:0;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.vd-row{display:flex;align-items:center;gap:calc(var(--k)*10px)}
+.vz-deck button{cursor:pointer;font-family:var(--sans)}
+.vd-shuf{flex:1;height:calc(var(--k)*52px);display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:calc(var(--k)*26px);background:var(--acc);color:#000000;font-weight:700;font-size:calc(var(--k)*18px);transition:transform .15s ease}
+.vd-shuf:active{transform:scale(.97)}
+.vd-shuf svg{width:calc(var(--k)*20px);height:calc(var(--k)*20px);fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.vd-seg{display:flex;padding:3px;border-radius:calc(var(--k)*26px);background:rgba(255,255,255,.08)}
+.vd-seg button{height:calc(var(--k)*46px);padding:0 calc(var(--k)*14px);border:0;border-radius:calc(var(--k)*23px);background:transparent;color:#B8B8B8;font-size:calc(var(--k)*15px);font-weight:600}
+.vd-seg button[aria-pressed=true]{background:#FFFFFF;color:#000000}
+.vd-cols{gap:calc(var(--k)*7px)}
+.vd-cols .vz-auto{height:calc(var(--k)*30px);padding:0 calc(var(--k)*10px);border-radius:calc(var(--k)*17px);border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#FFFFFF;font-size:calc(var(--k)*14px);font-weight:600}
+.vd-cols .vz-auto[aria-pressed=true]{background:#FFFFFF;color:#000000;border-color:#FFFFFF}
+.vz-sets{display:flex;gap:calc(var(--k)*6px)}
+.vz-sets .multi{background:conic-gradient(#296EFF,#1FDBC7,#4FFF78,#FFB300,#FF3D00,#FF2D95,#8A5CFF,#296EFF)!important;animation:spinMulti 6s linear infinite}
+@keyframes spinMulti{to{rotate:360deg}}
+body:not(.screen-mode) .vz-sets .multi{animation-play-state:paused}
+.vz-sets button{width:calc(var(--k)*28px);height:calc(var(--k)*28px);padding:0;border-radius:50%;border:2px solid transparent;transition:transform .15s ease}
+.vz-sets button:hover{transform:scale(1.12)}
+.vz-sets button[aria-pressed=true]{border-color:#FFFFFF;box-shadow:0 0 0 2px #000 inset}
+.vd-q{flex:1;min-height:0;display:flex;flex-direction:column;padding:calc(var(--k)*16px) calc(var(--k)*12px) calc(var(--k)*12px)}
+.vd-q>.vd-lbl{padding:0 calc(var(--k)*10px) calc(var(--k)*10px)}
+.vd-list{list-style:none;margin:0;padding:0;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
+.vd-list button{position:relative;display:grid;grid-template-columns:calc(var(--k)*46px) minmax(0,1fr) auto;gap:calc(var(--k)*12px);align-items:center;width:100%;padding:calc(var(--k)*7px) calc(var(--k)*10px);border:0;border-radius:calc(var(--k)*12px);background:transparent;color:#FFFFFF;text-align:left}
+.vd-list button:hover,.vd-list button:focus-visible{background:rgba(255,255,255,.07);outline:0}
+.vd-list img,.vd-list .ph{width:calc(var(--k)*46px);height:calc(var(--k)*46px);border-radius:calc(var(--k)*7px);object-fit:cover;background:#222}
+.vd-list b{display:block;font-weight:600;font-size:calc(var(--k)*17px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vd-list i{display:block;font-style:normal;font-size:calc(var(--k)*14px);color:#9A9A9A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.vd-list em{font:calc(var(--k)*13px) var(--mono);font-style:normal;color:#9A9A9A}
+.vd-list .on{background:rgba(255,255,255,.1)}
+.vd-list .on b{color:var(--acc)}
+.vd-list .on::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:2px;background:var(--acc)}
+.vd-list .on em{color:var(--acc)}
+.vd-empty{padding:calc(var(--k)*12px) calc(var(--k)*10px);font-size:calc(var(--k)*15px);color:#9A9A9A;line-height:1.4}
+.vz-deck.is-embed .vd-list{visibility:hidden}
+body.screen-mode #monitor.active .vz-now{max-width:calc(100% - var(--k)*420px - 110px)}
+body.screen-mode #monitor.active .vz-card{right:calc(var(--k)*420px + 28px)}
+.vz-card{transition:opacity .6s ease,right .45s ease}
 .vz-sets button[aria-pressed=true]{box-shadow:0 0 0 3px #000000,0 0 0 5px #FFFFFF}
 .vz-st{margin-left:8px;font:400 17px var(--sans);color:#B3B3B3}
 /* visitors: Spotify's own player as a strip along the bottom, over the visuals */
-#monitor.club.embed .mon-embed{display:block;inset:auto 36px 30px 36px;height:152px;background:transparent;border-radius:12px;overflow:hidden;z-index:2}
+#monitor.club.embed .mon-embed{display:block;inset:auto;right:40px;bottom:40px;top:calc(64px + 196px + 54px);width:396px;height:auto;background:transparent;border-radius:12px;overflow:hidden;z-index:2;
+  opacity:0;pointer-events:none;transition:opacity .45s ease}
+body.screen-mode #monitor.active.club.embed .mon-embed{opacity:1;pointer-events:auto}
 #monitor.club.embed .vz-now{bottom:214px}
 #monitor.club.embed .vz-bar{display:none}
 /* club mode: the lasers move faster while Spotify plays */
@@ -456,8 +496,11 @@ body.screen-mode .screenbar{display:flex}
   .lp-hint,.lp-empty{font-size:42px}
   /* Spotify's player renders at half size and is scaled up, so its text stays readable */
   #monitor .mon-embed iframe{width:50%;height:50%;transform:scale(2);transform-origin:0 0}
-  #monitor.club.embed .mon-embed{height:304px}
-  #monitor.club.embed .vz-now{bottom:360px}
+  /* phones: the deck is bigger so it can be read and tapped */
+  #monViz{--k:1.75;--dt:24px}
+  .vz-deck{right:20px;bottom:20px}
+  #monitor.club.embed .mon-embed{top:calc(24px + 1.75*196px + 1.75*54px);right:30px;bottom:30px;width:calc(1.75*420px - 20px)}
+  body.screen-mode #monitor.active .vz-now{display:none}
 }
 .spill{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:.25;transition:opacity .6s ease;border-radius:50%}
 body.lights-off .spill{opacity:.9}
@@ -703,9 +746,17 @@ body.intro .player{transform:translateY(110%)}
         <div class="vz-now"><img id="vzCover" alt=""><div><small>NOW PLAYING</small><b id="vzTitle"></b><span id="vzArtist"></span></div></div>
         <div class="vz-bar"><span id="vzFill"></span></div>
         <div class="vz-card" id="vzCard" aria-live="polite"><small id="vzcNum"></small><b id="vzcTitle"></b><span id="vzcArtist"></span><div class="vz-chips"><i id="vzcScene"></i><i id="vzcSet"></i></div></div>
-        <div class="vz-ctl" id="vzCtl">
-          <div class="vz-row"><span class="vz-lbl">COLOURS</span><button class="vz-auto" data-col="auto" aria-pressed="true">Auto</button><span id="vzSets" class="vz-sets"></span></div>
-          <div class="vz-row"><span class="vz-lbl">SCENES</span><button data-scn="shuffle" aria-pressed="true">New every song</button><button data-scn="lock" aria-pressed="false">Keep this one</button><button data-act="shuf" title="Shuffle visuals now (S)">&#x21bb; Shuffle</button><span class="vz-st" id="vzSt"></span></div>
+        <div class="vz-deck" id="vzCtl">
+          <div class="vd-head">
+            <div class="vd-lbl"><span>VISUALS</span><span class="vd-st" id="vzSt"></span></div>
+            <div class="vd-row"><button class="vd-shuf" data-act="shuf" title="Shuffle visuals now (S)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle visuals</button>
+              <span class="vd-seg" role="group" aria-label="When the visuals change"><button data-scn="shuffle" aria-pressed="true">Each song</button><button data-scn="lock" aria-pressed="false">Keep</button></span></div>
+            <div class="vd-row vd-cols"><button class="vz-auto" data-col="auto" aria-pressed="true">Auto</button><span id="vzSets" class="vz-sets"></span></div>
+          </div>
+          <div class="vd-q">
+            <div class="vd-lbl"><span>UP NEXT</span><span class="vd-ctx" id="vzQctx"></span></div>
+            <ol class="vd-list" id="vzList"></ol>
+          </div>
         </div>
       </div>
       <div class="mon-now" id="monNow">
@@ -1272,7 +1323,7 @@ const asTrack = (i) => ({ id:i.id, title:i.title, artist:i.artist || 'idk∗wtnt
 library().then(items => {
   ITEMS = items;
   const tracks = items.filter(i => i.type === 'track');
-  if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); if ($('#laptop').dataset.os === 'tracks') renderOsTracks(); }
+  if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); if ($('#laptop').dataset.os === 'tracks') renderOsTracks(); if (vizSrc === 'local') renderDeck(); }
 });
 
 /* ---------- rooms ---------- */
@@ -1775,6 +1826,7 @@ async function playSpotify(body, meta, zoom){
 /* the monitor while you play in full: cover, song, progress and what's in the playlist */
 let nowMeta = null, nowBody = null;
 async function showNow(meta, body, zoom){
+  if (!nowMeta || nowMeta.id !== meta.id) nowTracks = [];
   nowMeta = meta; nowBody = body; embedItem = { ...meta, url: meta.url || (meta.id ? `https://open.spotify.com/${meta.type}/${meta.id}` : 'https://open.spotify.com') };
   $('#monitor').classList.remove('embed', 'app'); $('#monitor').classList.add('now');
   vizShow('spotify', null); Viz.clock(() => spPos());   // the song itself arrives from the player a moment later
@@ -1794,6 +1846,7 @@ async function showNow(meta, body, zoom){
   renderNowList(tracks || []);
 }
 function renderNowList(tracks){
+  nowTracks = tracks; if (vizSrc === 'spotify') renderDeck();
   const ol = $('#mnList'); ol.innerHTML = '';
   tracks.forEach((t, i) => {
     const li = document.createElement('li'), b = document.createElement('button');
@@ -1803,8 +1856,7 @@ function renderNowList(tracks){
     b.querySelector('b').textContent = t.name + ' · ' + (t.artists || []).map(a => a.name).join(', ');
     b.querySelector('i').textContent = fmt((t.duration_ms || 0) / 1000);
     b.addEventListener('click', () => {
-      const body = nowBody && nowBody.context_uri ? { context_uri: nowBody.context_uri, offset: { position: i } } : { uris: tracks.map(x => x.uri), offset: { position: i } };
-      playSpotify(body, null, false);
+      playNowAt(i);
     });
     li.appendChild(b); ol.appendChild(li);
   });
@@ -1857,6 +1909,7 @@ if (ownerPw){
 let vizKey = null, vizTrackNo = 0, vizCardT = 0;
 function vizShow(src, info){
   if (!window.Viz || !Viz.mount($('#monViz'))) return;
+  const srcChanged = vizSrc !== src;
   if (!body.classList.contains('moving')) vizQuality();
   const first = !$('#monitor').classList.contains('club');
   vizSrc = src;
@@ -1865,6 +1918,44 @@ function vizShow(src, info){
   m.classList.add('club');
   if (first) vizKey = null;
   if (info) vizSong(info, first);
+  if (srcChanged || first) renderDeck(); else markDeck();
+}
+/* the deck's song list: your Spotify playlist, your own tracks, or (for visitors) Spotify's own player sits there */
+let nowTracks = [];
+function deckRows(){
+  if (vizSrc === 'spotify') return nowTracks.map((t, i) => ({ key: t.uri, title: t.name, sub: (t.artists || []).map(a => a.name).join(', '),
+    img: (t.album && t.album.images && t.album.images.length) ? t.album.images[t.album.images.length - 1].url : (nowMeta && nowMeta.image),
+    dur: fmt((t.duration_ms || 0) / 1000), play: () => playNowAt(i) }));
+  if (vizSrc === 'local') return TRACKS.map((t, i) => ({ key: 'l' + i, title: t.title, sub: t.artist || 'idk∗wtnt', img: t.cover, dur: t.length ? fmt(t.length) : '',
+    play: () => { if (i === idx && SRC === 'local') togglePlay(); else load(i, true); } }));
+  return [];
+}
+function renderDeck(){
+  const ol = $('#vzList'); ol.innerHTML = '';
+  $('#vzCtl').classList.toggle('is-embed', vizSrc === 'embed');
+  $('#vzQctx').textContent = vizSrc === 'spotify' ? (nowMeta ? nowMeta.name : 'Spotify') : vizSrc === 'local' ? 'My tracks' : (embedItem ? embedItem.name : '');
+  const rows = deckRows();
+  if (!rows.length && vizSrc !== 'embed'){ const li = el('li', 'vd-empty', vizSrc === 'spotify' ? 'Loading the playlist…' : 'No songs yet.'); ol.appendChild(li); }
+  rows.forEach(r => {
+    const li = document.createElement('li'), b = document.createElement('button'); b.dataset.key = r.key;
+    const img = r.img ? Object.assign(document.createElement('img'), { src: r.img, alt: '', loading: 'lazy' }) : el('span', 'ph');
+    const mid = el('span'); mid.append(el('b', null, r.title), el('i', null, r.sub));
+    b.append(img, mid, el('em', null, r.dur)); b.addEventListener('click', r.play);
+    li.appendChild(b); ol.appendChild(li);
+  });
+  markDeck();
+}
+function markDeck(){
+  const cur = vizSrc === 'spotify' ? SP.uri : vizSrc === 'local' ? 'l' + idx : null, ol = $('#vzList');
+  ol.querySelectorAll('button').forEach(b => {
+    const on = b.dataset.key === cur;
+    if (on && !b.classList.contains('on')){ const t = b.offsetTop - ol.offsetTop; if (t < ol.scrollTop || t > ol.scrollTop + ol.clientHeight - b.offsetHeight) ol.scrollTop = t - 8; }
+    b.classList.toggle('on', on);
+  });
+}
+function playNowAt(i){
+  const body = nowBody && nowBody.context_uri ? { context_uri: nowBody.context_uri, offset: { position: i } } : { uris: nowTracks.map(x => x.uri), offset: { position: i } };
+  playSpotify(body, null, false);
 }
 // a new song: Viz fades out over 2 beats, picks the song's scene and colours, then the title card shows
 function vizSong(info, first){
@@ -1894,6 +1985,7 @@ function vizStatus(now){
 }
 if (window.Viz){
   // the eight colour sets as swatches; your choice is remembered in this browser
+  { const m = document.createElement('button'); m.className = 'multi'; m.dataset.col = 'cycle'; m.title = 'Multicolour: moves through all the colours'; m.setAttribute('aria-label', 'Multicolour'); $('#vzSets').appendChild(m); }
   Viz.SETS.forEach((st, i) => { const b = document.createElement('button'); b.dataset.col = String(i); b.title = st.name; b.setAttribute('aria-label', st.name + ' colours');
     b.style.background = `linear-gradient(120deg, ${st.hex[0]}, ${st.hex[1]}, ${st.hex[2]})`; $('#vzSets').appendChild(b); });
   let saved = null; try { saved = JSON.parse(localStorage.getItem('idk-viz') || 'null'); } catch {}
@@ -1901,7 +1993,7 @@ if (window.Viz){
   const save = () => { try { localStorage.setItem('idk-viz', JSON.stringify(Viz.now().prefs)); } catch {} vizStatus(); };
   $('#vzCtl').addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.col) Viz.prefs({ colours: b.dataset.col === 'auto' ? 'auto' : +b.dataset.col });
+    if (b.dataset.col) Viz.prefs({ colours: b.dataset.col === 'auto' || b.dataset.col === 'cycle' ? b.dataset.col : +b.dataset.col });
     if (b.dataset.scn) Viz.prefs({ scene: b.dataset.scn });
     if (b.dataset.act === 'shuf'){ Viz.shuffle(() => vizStatus()); return; }
     save();
@@ -1921,6 +2013,11 @@ setInterval(() => {   // progress line under the visuals
   if (!vizSrc) return;
   const d = duration(), p = position();
   if (body.classList.contains('moving')) return;
+  markDeck();
+  const pal = Viz.state().palette; let best = pal[0], bl = -1;
+  pal.forEach(c => { const l = .3 * c[0] + .59 * c[1] + .11 * c[2]; if (l > bl){ bl = l; best = c; } });
+  const m = Math.max(...best, .01), k = Math.max(1, .9 / m);
+  $('#monViz').style.setProperty('--acc', `rgb(${best.map(v => Math.round(Math.min(1, v * k) * 255)).join(',')})`);
   $('#vzFill').style.transform = 'scaleX(' + (d ? Math.min(1, p / d) : 0).toFixed(4) + ')';
 }, 500);
 

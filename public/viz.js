@@ -13,7 +13,7 @@
    Viz.SETS                         the colour sets [{name, hex:[3]}]
    Viz.song(info, {first, onDark})  a new song: fade out over 2 beats, pick its scene and colours, fade back in
    Viz.shuffle(onSwap)              mid-song: a different scene (and scenery) now, with a quick dip; colours stay
-   Viz.prefs({colours, scene, scenery})  colours: 'auto' or a set index; scene: 'shuffle' or 'lock' (keeps the current one);
+   Viz.prefs({colours, scene, scenery})  colours: 'auto', 'cycle' (multicolour) or a set index; scene: 'shuffle' or 'lock' (keeps the current one);
                                     scenery (behind the stick figures): 'auto' (new each song) or an index into Viz.SCENERY
    Viz.now()                        {scene, set} names for what's showing
 */
@@ -269,7 +269,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
       S.songScene = pickScene(); S.hist.push(S.songScene); if (S.hist.length > 8) S.hist.shift();
       pickScenery();
       if (S.prefs.colours === 'auto'){ S.coverSet = S.set; if (info && info.cover) palette(info.cover); }
-      else applySet(+S.prefs.colours);
+      else if (S.prefs.colours !== 'cycle') applySet(+S.prefs.colours);
       if (opts.onDark) opts.onDark(now());
       S.fadeTo = 1; S.fadeRate = 1 / 1.2;              // fade back in over 1.2 s
     };
@@ -282,10 +282,10 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     Object.assign(S.prefs, p || {});
     if (p && p.scene === 'lock') S.songScene = S.scene != null ? S.scene : S.songScene;
     if (p && 'scenery' in p && p.scenery !== 'auto') S.bg = +p.scenery;
-    if (p && 'colours' in p){ applySet(p.colours === 'auto' ? S.coverSet : +p.colours); }
+    if (p && 'colours' in p){ if (p.colours === 'cycle') S.cyc = S.set % 7; else applySet(p.colours === 'auto' ? S.coverSet : +p.colours); }
     if (S.gl && !S.run) loop();
   }
-  function now(){ return { scene: SCENES[S.songScene], set: SETS[S.set].name, scenery: SCENERY[S.bg], prefs: { ...S.prefs } }; }
+  function now(){ return { scene: SCENES[S.songScene], set: S.prefs.colours === 'cycle' ? 'Multicolour' : SETS[S.set].name, scenery: SCENERY[S.bg], prefs: { ...S.prefs } }; }
   function track(info){
     let h = 0; const id = String(info && (info.id || info.cover) || Math.random()); for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0;
     S.base = Math.abs(h) % SCENES.length; S.env = 0;
@@ -334,6 +334,9 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     S.scene = S.cfg.scene === 'auto' ? S.songScene : +S.cfg.scene;
     S.fade += Math.sign(S.fadeTo - S.fade) * Math.min(Math.abs(S.fadeTo - S.fade), dt * S.fadeRate);
     if (S.palTo){ let done = true; S.pal = S.pal.map((c, i) => c.map((v, j) => { const t = S.palTo[i][j], nv = v + (t - v) * Math.min(1, dt * 3); if (Math.abs(t - nv) > .002) done = false; return nv; })); if (done) S.palTo = null; }
+    // multicolour: glide through the colour sets (not Mono) at a steady pace, about 7 s each
+    if (S.prefs.colours === 'cycle'){ S.cyc = ((S.cyc || 0) + dt / 7) % 7; const k = Math.floor(S.cyc), f = S.cyc - k, e = f * f * (3 - 2 * f);
+      const a = SETS[k].rgb, b = SETS[(k + 1) % 7].rgb; S.pal = a.map((c, i) => c.map((v, j) => v + (b[i][j] - v) * e)); S.palTo = null; }
     gl.uniform1f(S.u.uFade, S.fade); gl.uniform1f(S.u.uPhase, S.phase % 4096);
     gl.uniform1i(S.u.uScene, S.scene); gl.uniform1i(S.u.uBg, S.bg);
     gl.uniform3fv(S.u.uC1, S.pal[0]); gl.uniform3fv(S.u.uC2, S.pal[1]); gl.uniform3fv(S.u.uC3, S.pal[2]);
