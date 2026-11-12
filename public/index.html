@@ -48,7 +48,7 @@ button{font:inherit;color:inherit}
 body.lights-off .fx{opacity:1;visibility:visible;transition:opacity 1.4s ease}
 /* nothing moves while you're zoomed into a screen or a room, or before the lights go off */
 .fx *{animation-play-state:paused!important}
-body.lights-off:not(.screen-mode):not(.in-room) .fx *{animation-play-state:running!important}
+body.lights-off:not(.screen-mode):not(.in-room):not(.moving) .fx *{animation-play-state:running!important}
 body.intro .fx{opacity:0}
 .fx .glow{position:absolute;border-radius:50%;will-change:transform}
 .fx .g4{display:none}
@@ -77,7 +77,15 @@ body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08)
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
 .photo{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;
   transition:filter .6s ease}
-body.lights-off .photo{filter:brightness(.34) saturate(.7) contrast(1.05)}
+body.lights-off:not(.dk-ready) .photo{filter:brightness(.34) saturate(.7) contrast(1.05)}
+/* lights off uses pre-darkened copies of the photo (same look as the filter above, which is only the fallback
+   until they load): a CSS filter on the big image made every camera move re-render it */
+.photo-dk{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;opacity:0;visibility:hidden;user-select:none}
+.photo-dk.ext{display:none;left:-37.674%;width:177.778%;right:auto;z-index:-1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%)}
+.scene.fit .photo-dk.ext{display:block}
+body.lights-off.dk-ready .photo-dk{opacity:1;visibility:visible;transition:opacity .6s ease}
+body.lights-off.dk-ready.lamp-on .photo-dk,body.intro .photo-dk{opacity:0;visibility:hidden}
 body.intro .photo{filter:brightness(.06) saturate(.5)}
 body.lamp-on .photo{animation:lampOn 1.5s steps(1,end) both}
 @keyframes lampOn{
@@ -101,6 +109,7 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
     linear-gradient(115deg,rgba(255,255,255,.07),rgba(255,255,255,0) 38%),
     repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
 .screen.hot{filter:brightness(1.18) drop-shadow(0 0 40px rgba(111,211,232,.45))}
+body.screen-mode .screen.hot,body.moving .screen.hot{filter:none}
 #monitor{width:1280px;height:720px;background:radial-gradient(ellipse 70% 80% at 58% 42%,#17323A 0%,#0A1418 45%,#050708 80%)}
 #monitor .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px}
 #monitor .reel{font-family:var(--mono);font-size:22px;letter-spacing:.2em;color:var(--screen)}
@@ -302,7 +311,7 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 .vz-now b{display:block;font:800 64px/1.02 var(--sans);letter-spacing:-.01em;margin:8px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .vz-now span{font:400 30px var(--sans);opacity:.85}
 .vz-bar{position:absolute;left:0;right:0;bottom:0;height:8px;background:rgba(255,255,255,.12)}
-.vz-bar span{display:block;height:100%;width:0;background:#FFFFFF}
+.vz-bar span{display:block;height:100%;width:100%;background:#FFFFFF;transform:scaleX(0);transform-origin:0 50%}
 /* between songs: the title card */
 .vz-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;transition:opacity .6s ease;pointer-events:none;text-shadow:0 2px 24px rgba(0,0,0,.8)}
 .vz-card small{font:500 20px var(--mono);letter-spacing:.3em;opacity:.85}
@@ -632,6 +641,8 @@ body.intro .player{transform:translateY(110%)}
     <img class="photo" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="max(100vw, 133vh)"
          alt="My desk at night: a monitor and laptop, a yellow lamp, AKAI keys, an acoustic guitar, figures and stickers" draggable="false">
     <img class="photo ext" src="img/desk-wide.jpg" alt="" aria-hidden="true" draggable="false">
+    <img class="photo-dk ext" data-src="img/desk-wide-dark.jpg" alt="" aria-hidden="true" draggable="false">
+    <img class="photo-dk main" data-srcset="img/desk-dark-1400.jpg 1400w, img/desk-dark-2400.jpg 2400w" sizes="max(100vw, 133vh)" alt="" aria-hidden="true" draggable="false">
     <div class="fx" aria-hidden="true"><div class="fx-in">
       <i class="glow g1"></i><i class="glow g2"></i><i class="glow g3"></i><i class="glow desk"></i><i class="glow desk2"></i>
       <canvas class="tw1" id="fxStars1"></canvas><canvas class="tw2" id="fxStars2"></canvas><canvas class="sweep1" id="fxBeams1"></canvas><canvas class="sweep2" id="fxBeams2"></canvas>
@@ -914,8 +925,24 @@ function frameScene(){
 }
 frameScene();
 addEventListener('resize', frameScene);
+// while the camera moves, the lasers, aurora and visualizer hold still so the zoom stays smooth
+let camT = 0;
+function camMove(){
+  body.classList.add('moving'); if (window.Viz && Viz.hold) Viz.hold(true);
+  clearTimeout(camT); camT = setTimeout(camDone, reduce ? 0 : 1250);
+}
+function camDone(){
+  clearTimeout(camT); if (!body.classList.contains('moving')) return;
+  body.classList.remove('moving'); if (window.Viz && Viz.hold){ vizQuality(); Viz.hold(false); }
+}
+// the monitor's visuals: full size when you're looking at it, lighter when it's small in the room view
+function vizQuality(){
+  if (!window.Viz || !Viz.quality) return;
+  Viz.quality(inRoom === 'screen-monitor' ? { fps:60, w:640, h:360 } : { fps:30, w:384, h:216 });
+}
 scene.addEventListener('transitionend', (e) => {
   if (e.target !== scene || e.propertyName !== 'transform') return;
+  camDone();
   document.querySelectorAll('.screen').forEach(el => { el.style.outline = el.style.outline ? '' : '0.5px solid transparent'; });
 });
 layout();
@@ -951,7 +978,7 @@ addEventListener('pointermove', (e) => {
 /* ---------- camera moves into rooms ---------- */
 function go(room){
   const c = CAM[room]; if (!c) return;
-  inRoom = room;
+  inRoom = room; camMove();
   scene.classList.remove('drift');
   // where is the target on screen right now?
   const r = scene.getBoundingClientRect();
@@ -975,7 +1002,7 @@ function go(room){
 }
 function back(){
   if (!inRoom) return;
-  const was = inRoom; inRoom = null;
+  const was = inRoom; inRoom = null; camMove();
   if (String(was).startsWith('screen')){
     body.classList.remove('screen-mode');
     document.querySelectorAll('.screen.active').forEach(e => { e.classList.remove('active'); e.setAttribute('aria-hidden', 'true'); });
@@ -1038,8 +1065,16 @@ function drawFx(){
 }
 
 /* ---------- the lamp ---------- */
+// the dark photos load after the page settles (or at once when the lights go off)
+function loadDark(){
+  const imgs = [...document.querySelectorAll('.photo-dk')]; if (imgs[0].dataset.go) return; imgs[0].dataset.go = '1';
+  let left = imgs.length;
+  imgs.forEach(im => { im.addEventListener('load', () => { if (--left === 0) body.classList.add('dk-ready'); }, { once:true });
+    if (im.dataset.srcset) im.srcset = im.dataset.srcset; else im.src = im.dataset.src; });
+}
+addEventListener('load', () => setTimeout(loadDark, 2500));
 function setLights(on){
-  if (!on) drawFx();
+  if (!on){ drawFx(); loadDark(); }
   body.classList.toggle('lights-off', !on);
   $('#lampLabel').textContent = on ? 'Lights off' : 'Lights on';
   $('#lampTag').textContent = on ? 'Lights off' : 'Lights on';
@@ -1401,7 +1436,7 @@ function focusScreen(id){
   scene.style.setProperty('--py', (T + s * oyl - r.top - oyl) + 'px');
   scene.style.setProperty('--s', s);
   document.querySelectorAll('.screen').forEach(e => { const on = e.id === id; e.classList.toggle('active', on); e.setAttribute('aria-hidden', String(!on)); });
-  inRoom = 'screen-' + id;
+  inRoom = 'screen-' + id; camMove();
   body.classList.add('screen-mode');
   const appOn = id === 'monitor' && $('#monitor').classList.contains('app');
   $('#openSpotify').hidden = !(id === 'monitor' && embedItem && !appOn);
@@ -1770,6 +1805,7 @@ if (ownerPw){
 let vizKey = null, vizTrackNo = 0, vizCardT = 0;
 function vizShow(src, info){
   if (!window.Viz || !Viz.mount($('#monViz'))) return;
+  if (!body.classList.contains('moving')) vizQuality();
   const first = !$('#monitor').classList.contains('club');
   vizSrc = src;
   const m = $('#monitor');
@@ -1826,7 +1862,8 @@ function clubLights(on){
 setInterval(() => {   // progress line under the visuals
   if (!vizSrc) return;
   const d = duration(), p = position();
-  $('#vzFill').style.width = (d ? Math.min(100, p / d * 100) : 0) + '%';
+  if (body.classList.contains('moving')) return;
+  $('#vzFill').style.transform = 'scaleX(' + (d ? Math.min(1, p / d) : 0).toFixed(4) + ')';
 }, 500);
 
 /* deep links: idk-wtnt.art/#sound opens straight into a room */

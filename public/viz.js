@@ -89,7 +89,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     ['Ember', '#7A0C00', '#FF3D00', '#FFB300'], ['Acid', '#00FF85', '#B6FF00', '#F4FF5E'], ['Bloom', '#8A5CFF', '#FF7AD9', '#FFD1F0'],
     ['Ultraviolet', '#6A00FF', '#FF006E', '#00D1FF'], ['Mono', '#1E1E1E', '#8A8A8A', '#FFFFFF'],
   ].map(([name, ...hex]) => ({ name, hex, rgb: hex.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)) }));
-  const S = { gl:null, fade:1, fadeTo:1, fadeRate:2, set:0, coverSet:0, hist:[], songScene:2, prefs:{ colours:'auto', scene:'shuffle' }, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
+  const S = { held:false, fps:60, gl:null, fade:1, fadeTo:1, fadeRate:2, set:0, coverSet:0, hist:[], songScene:2, prefs:{ colours:'auto', scene:'shuffle' }, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
     pal:[[.16,.43,1],[.12,.86,.78],[.31,1,.47]], palTo:null, base:0, cfg:{ scene:'auto', speed:1, punch:1, bpm:124 }, getPos:null, an:null, data:null, avg:0, env:0, lastHit:0, bpm:124 };
 
   function compile(gl, type, src){ const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -186,7 +186,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
       S.an = S.analyser; S.getPos = () => el.currentTime;
     } catch (e) { console.warn('viz audio', e); }
   }
-  function play(on){ S.run = !!on; if (S.run) loop(); }
+  function play(on){ S.run = !!on; if (S.run){ S.last = 0; loop(); } }
 
   function loop(){
     cancelAnimationFrame(S.raf);
@@ -194,9 +194,10 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   }
   function frame(now){
     const gl = S.gl; if (!gl) return;
-    const dt = Math.min(.1, (now - (S.last || now)) / 1000); S.last = now;
-    // if the monitor isn't on screen, draw slowly
     if (!S.cv.isConnected || document.hidden) return;
+    // held (the camera is moving) or ahead of the frame cap: keep the last picture, check again next frame
+    if (S.held || (S.last && now - S.last < 1000 / S.fps - 4)){ S.raf = requestAnimationFrame(frame); return; }
+    const dt = Math.min(.1, (now - (S.last || now)) / 1000); S.last = now;
     let beat = 0, bass = 0, high = .3, pos = S.getPos ? S.getPos() : now / 1000;
     if (S.run && S.an){
       S.an.getByteFrequencyData(S.data);
@@ -221,8 +222,11 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     if (S.run || S.palTo || Math.abs(S.fade - S.fadeTo) > .001) S.raf = requestAnimationFrame(frame);
   }
 
+  // hold(true) freezes the picture (cheap) until hold(false); quality({fps, w, h}) caps the frame rate and canvas size
+  function hold(on){ S.held = !!on; if (!on){ S.last = 0; loop(); } }
+  function quality(q){ if (q.fps) S.fps = q.fps; if (q.w && S.cv && (S.cv.width !== q.w || S.cv.height !== q.h)) size(q.w, q.h); }
   function set(c){ Object.assign(S.cfg, c || {}); if (c && c.palette) S.pal = c.palette; if (S.gl && !S.run) loop(); }
   function size(w, h){ if (!S.gl) return; S.cv.width = w; S.cv.height = h; S.gl.viewport(0, 0, w, h); S.gl.uniform2f(S.u.uRes, w, h); if (!S.run) loop(); }
   function state(){ return { ...S.cfg, palette: S.pal, scene_now: S.scene, beat: S.beat || 0, level: S.level || 0 }; }
-  window.Viz = { SCENES, SETS, song, prefs, now, onCover(fn){ S.onCover = fn; }, mount, track, clock, audio, play, set, state, size, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
+  window.Viz = { SCENES, SETS, song, prefs, now, onCover(fn){ S.onCover = fn; }, mount, track, clock, audio, play, set, state, size, hold, quality, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
 })();
