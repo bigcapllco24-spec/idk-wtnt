@@ -83,25 +83,60 @@ vec3 opart(vec2 uv){float w=sin(uv.x*3.+uTime*.6)*.15+sin(uv.y*2.+uTime*.4)*.1+f
 float sgd(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);return length(pa-ba*h);}
 vec2 dir(float a){return vec2(sin(a),cos(a));}
 float leg(vec2 p,vec2 h,vec2 f,float s){vec2 v=f-h;float L=min(length(v),.499);vec2 n=normalize(v);
-  vec2 k=h+n*L*.5+vec2(-n.y,n.x)*s*sqrt(max(0.,.0625-L*L*.25));return min(sgd(p,h,k),sgd(p,k,h+n*L));}
-float fig(vec2 p,float ph,float mv){
-  float d=exp(-fract(ph)*4.),s=sin(ph*3.1416),sg=step(.5,fract(ph*.25))*2.-1.;
-  vec2 hip=vec2(.03*s,.46-.06*d),fl=vec2(-.11,0.),fr=vec2(.11,0.);float lean=.1*s;
-  float ua=1.2,fa=.4,ub=-1.2,fb=-.4;
-  if(mv<.5){ua=mix(1.7,.2,d);fa=mix(-.3,.1,d);ub=-2.5;fb=2.4;}                                  // fist pump
-  else if(mv<1.5){ua=.5+.4*s;fa=.15+.7*s;ub=-.5+.4*s;fb=-.15+.7*s;hip.x=.05*s;}                    // hands up, sway
-  else if(mv<2.5){ua=2.3+.5*s;fa=1.1+.6*s;ub=-2.3+.5*s;fb=-1.1+.6*s;                               // shuffle
-    fr.y=.08*max(0.,s);fl.y=.08*max(0.,-s);fr.x+=.05*s;fl.x+=.05*s;}
-  else if(mv<3.5){hip.x=.04*sg;lean=.12*sg;fr.x+=.05*max(0.,sg);fl.x-=.05*max(0.,-sg);              // disco point
-    if(sg>0.){ua=.5;fa=.45;ub=-2.5;fb=2.4;}else{ub=-.5;fb=-.45;ua=2.5;fa=-2.4;}}
-  else{float j=.12*(1.-pow(2.*fract(ph)-1.,2.));ua=.45-.25*d;fa=.3;ub=-.45+.25*d;fb=-.3;           // jump
-    hip.y=.44+j;fl.y=fr.y=j*.55;}
-  vec2 nk=hip+.3*dir(lean),hc=nk+.1*dir(lean*1.4),sh=hip+.27*dir(lean);
-  vec2 er=sh+.16*dir(ua),el=sh+.16*dir(ub);
-  float r=min(sgd(p,hip,nk),abs(length(p-hc)-.065));
-  r=min(r,min(sgd(p,sh,er),sgd(p,er,er+.15*dir(fa))));
-  r=min(r,min(sgd(p,sh,el),sgd(p,el,el+.15*dir(fb))));
-  return min(r,min(leg(p,hip,fr,1.),leg(p,hip,fl,-1.)));}
+  vec2 k=h+n*L*.5+vec2(-n.y,n.x)*clamp(s,-1.6,1.6)*sqrt(max(0.,.0625-L*L*.25));return min(sgd(p,h,k),sgd(p,k,h+n*L));}
+/* a pose: where the hips sit, how the body leans, the arm angles (0 = straight up, + = to the right),
+   where the feet are, which way the knees bend, a head nod, and sx (the figure's width, for spins) */
+struct P{vec2 hip,fr,fl;float lean,ua,fa,ub,fb,nod,kr,kl,sx;};
+P mixP(P a,P b,float t){P o;o.hip=mix(a.hip,b.hip,t);o.fr=mix(a.fr,b.fr,t);o.fl=mix(a.fl,b.fl,t);o.lean=mix(a.lean,b.lean,t);
+  o.ua=mix(a.ua,b.ua,t);o.fa=mix(a.fa,b.fa,t);o.ub=mix(a.ub,b.ub,t);o.fb=mix(a.fb,b.fb,t);o.nod=mix(a.nod,b.nod,t);
+  o.kr=mix(a.kr,b.kr,t);o.kl=mix(a.kl,b.kl,t);o.sx=mix(a.sx,b.sx,t);return o;}
+float rk(float k,float s){return floor(hash(vec2(k,s))*3.)*.785+.785;}
+// thirteen moves; every curve is smooth so nothing snaps
+P pose(float ph,float mv){
+  const float PI=3.14159;float B=ph*2.*PI,dip=pow(.5+.5*cos(B),2.),sw=sin(ph*PI),f=fract(ph);
+  P q;q.hip=vec2(0.,.46-.05*dip);q.fr=vec2(.11,0.);q.fl=vec2(-.11,0.);q.lean=.06*sw;q.nod=0.;q.kr=1.;q.kl=-1.;q.sx=1.;
+  q.ua=2.6;q.fa=2.9;q.ub=-2.6;q.fb=-2.9;
+  if(mv<.5){q.ua=mix(1.75,.2,dip);q.fa=mix(-.35,.1,dip);q.ub=-2.55;q.fb=2.4;q.nod=dip;}                         // fist pump
+  else if(mv<1.5){q.hip.x=.05*sw;q.lean=.1*sw;q.ua=.45+.35*sw;q.fa=.1+.6*sw;q.ub=-.45+.35*sw;q.fb=-.1+.6*sw;}      // hands up, sway
+  else if(mv<2.5){q.fr=vec2(.11+.06*sw,.09*max(0.,sw));q.fl=vec2(-.11+.06*sw,.09*max(0.,-sw));                     // shuffle
+    q.ua=2.2+.45*sw;q.fa=1.+.7*sw;q.ub=-2.2+.45*sw;q.fb=-1.+.7*sw;}
+  else if(mv<3.5){float r=smoothstep(-.4,.4,sin(ph*PI*.5));float g=r*2.-1.;                                          // disco point
+    q.hip.x=.04*g;q.lean=.12*g;q.fr.x+=.05*max(0.,g);q.fl.x-=.05*max(0.,-g);
+    q.ua=mix(2.5,.5,r);q.fa=mix(-2.4,.45,r);q.ub=mix(-.5,-2.5,r);q.fb=mix(-.45,2.4,r);}
+  else if(mv<4.5){float j=.13*(1.-pow(2.*f-1.,2.));q.hip.y=.44+j-.05*dip;q.fr=vec2(.08,j*.55);q.fl=vec2(-.08,j*.55); // jump
+    q.ua=.45-.3*dip;q.fa=.3-.2*dip;q.ub=-.45+.3*dip;q.fb=-.3+.2*dip;q.lean=0.;}
+  else if(mv<5.5){float w=ph*PI;q.ub=-1.57+.35*sin(w);q.fb=-1.57+.75*sin(w-1.);                                    // arm wave
+    q.ua=1.57-.35*sin(w-2.);q.fa=1.57-.75*sin(w-3.);q.lean=.05*sin(w-1.5);q.hip.y=.46-.03*dip;}
+  else if(mv<6.5){float k=floor(ph),e=smoothstep(0.,.28,f);                                                         // robot
+    q.ua=mix(rk(k-1.,1.),rk(k,1.),e);q.fa=q.ua-1.57;q.ub=-mix(rk(k-1.,2.),rk(k,2.),e);q.fb=q.ub+1.57;
+    q.hip=vec2(.025*mix(rk(k-1.,3.)-1.57,rk(k,3.)-1.57,e),.47);q.lean=0.;q.nod=.5*e*(1.-e)*4.;}
+  else if(mv<7.5){float o=sin(B*.5);q.ua=PI+.2-.75*o;q.fa=q.ua;q.ub=PI-.2-.75*o;q.fb=q.ub;                          // floss
+    q.hip.x=-.05*o;q.lean=.05*o;}
+  else if(mv<8.5){q.hip.y=.43-.05*dip;q.fr.x=.15;q.fl.x=-.15;q.ub=-1.9;q.fb=-1.2;                                  // air guitar
+    q.ua=2.35;q.fa=-1.75+.55*sin(B*2.);q.nod=dip;q.lean=-.06;}
+  else if(mv<9.5){q.ua=.9;q.fa=-1.37;q.ub=-.9;q.fb=1.37;q.hip.x=.07*sw;q.lean=-.12*sw;q.hip.y=.46-.03*dip;}         // hands behind head, hip roll
+  else if(mv<10.5){float o=sin(B*.5);q.kr=q.kl=1.6*o;q.hip=vec2(.02*o,.42-.03*dip);                                  // twist
+    q.ua=1.9+.4*o;q.fa=.6+.5*o;q.ub=-1.9+.4*o;q.fb=-.6+.5*o;q.lean=-.06*o;}
+  else if(mv<11.5){float kk=sin(ph*PI);q.fr=vec2(.11+.22*max(0.,kk),.2*max(0.,kk));q.fl=vec2(-.11-.22*max(0.,-kk),.2*max(0.,-kk)); // side kicks
+    q.hip.x=-.04*kk;q.ua=1.4+.2*kk;q.fa=1.3+.3*kk;q.ub=-1.4+.2*kk;q.fb=-1.3+.3*kk;q.lean=-.1*kk;}
+  else{float sp=smoothstep(.72,1.,fract(ph*.25)),up=sin(sp*PI);q.sx=cos(sp*2.*PI);                                   // spin
+    q.hip.x=.04*sw*(1.-up);q.ua=mix(2.3+.2*sw,.3,up);q.fa=mix(2.6,.15,up);q.ub=-q.ua+.4*sw*(1.-up);q.fb=-q.fa;q.hip.y=.46-.04*dip+.03*up;}
+  return q;}
+// a dancer: move m0, easing into m1 as t goes 0 to 1
+float figB(vec2 p,float ph,float m0,float m1,float t){
+  P q=pose(ph,m0);if(t>0.)q=mixP(q,pose(ph,m1),smoothstep(0.,1.,t));
+  float ax=max(abs(q.sx),.12);p.x/=ax*(q.sx<0.?-1.:1.);
+  q.ua+=.05*sin(ph*6.2832+1.3);q.ub+=.05*sin(ph*6.2832+2.1);                       // a little life in the arms
+  vec2 nk=q.hip+.3*dir(q.lean),sh=q.hip+.27*dir(q.lean),hc=nk+.1*dir(q.lean*1.5)+vec2(0.,-.022*q.nod);
+  vec2 er=sh+.16*dir(q.ua),el=sh+.16*dir(q.ub);
+  float r=min(sgd(p,q.hip,nk),abs(length(p-hc)-.065));
+  r=min(r,min(sgd(p,sh,er),sgd(p,er,er+.15*dir(q.fa))));
+  r=min(r,min(sgd(p,sh,el),sgd(p,el,el+.15*dir(q.fb))));
+  r=min(r,min(leg(p,q.hip,q.fr,q.kr),leg(p,q.hip,q.fl,q.kl)));
+  return r*mix(1.,ax,.6);}
+float fig(vec2 p,float ph,float mv){return figB(p,ph,mv,mv,0.);}
+// the move a dancer does in each block of n beats, easing into the next one over the block's last beat
+float blockT(float ph,float n){return clamp(mod(ph,n)-(n-1.),0.,1.);}
 float lw(){return max(.0045,1.6/uRes.y);}
 
 /* ---- scenery behind the stick figures (uBg): 0 club (each scene's own stage), 1 city, 2 beach, 3 forest, 4 space ---- */
@@ -146,15 +181,16 @@ vec3 dancers(vec2 uv){vec3 c=vec3(0.);float fy=-.34,w=lw();
   if(uBg>0)c=scenery(uv,fy+.06);else for(int i=0;i<3;i++){float fi=float(i);vec2 q=uv-vec2((fi-1.)*.62+.15*sin(uTime*.4+fi*2.),.62);
     c+=pal(fi*.33+uTime*.03)*smoothstep(.3,0.,abs(atan(q.x,-q.y)))*.16*(1.+uBeat*.8)*smoothstep(-.6,.5,uv.y);}
   vec2 p=uv;float rf=1.;if(p.y<fy){p.y=2.*fy-p.y;rf=.3*smoothstep(-.62,fy,uv.y);}
-  float sc=.5,mb=floor(uPhase/16.);
+  float sc=.5,mb=floor(uPhase/16.),t=blockT(uPhase,16.);
   for(int i=0;i<5;i++){float fi=float(i),k=abs(fi-2.);vec2 q=(p-vec2((fi-2.)*.35,fy))/sc;if(fi<2.)q.x=-q.x;
-    float d=fig(q,uPhase,mod(mb+k,5.))*sc;
+    float k0=mod(mb,3.)>1.5?0.:k*4.,k1=mod(mb+1.,3.)>1.5?0.:k*4.;
+    float d=figB(q,uPhase-k*.04,mod(mb*5.+k0,13.),mod(mb*5.+5.+k1,13.),t)*sc;
     c+=pal(k*.3+uTime*.04)*(smoothstep(w,w*.4,d)*1.3+exp(-d*55.)*.35)*rf*(1.+uBeat*.3);}
   return c+uC2*smoothstep(.004,0.,abs(uv.y-fy))*(uBg>0?.12:.35);}
 vec3 solo(vec2 uv){vec3 c=vec3(0.);float r=length(uv-vec2(0.,-.05)),w=lw()*1.4;
   float f=fract(r*3.-uPhase*.5);if(uBg>0)c=scenery(uv,-.36)*.85;else c+=pal(r+uTime*.05)*exp(-f*10.)*.22*smoothstep(1.,.1,r);
-  float mv=mod(floor(uPhase/8.),5.),sc=.78;vec2 q=(uv-vec2(0.,-.43))/sc;
-  for(int k=3;k>=0;k--){float fk=float(k);float d=fig(q,uPhase-fk*.09,mv)*sc;
+  float mb=floor(uPhase/8.),t=blockT(uPhase,8.),sc=.78;vec2 q=(uv-vec2(0.,-.43))/sc;
+  for(int k=3;k>=0;k--){float fk=float(k);float d=figB(q,uPhase-fk*.09,mod(mb*7.,13.),mod(mb*7.+7.,13.),t)*sc;
     c+=pal(fk*.17+uTime*.05)*(smoothstep(w,w*.4,d)*(fk<.5?1.4:.45/fk)+exp(-d*40.)*(fk<.5?.45:.08))*(1.+uBeat*.4);}
   return c;}
 vec3 crowd(vec2 uv){vec2 q0=uv-vec2(0.,.56);vec3 c=uBg>0?scenery(uv,-.2):uC1*.06+pal(uTime*.05)*exp(-length(q0)*2.6)*(.7+.7*uBeat);
@@ -163,8 +199,9 @@ vec3 crowd(vec2 uv){vec2 q0=uv-vec2(0.,.56);vec3 c=uBg>0?scenery(uv,-.2):uC1*.06
   for(int row=0;row<2;row++){float fr=float(row),sc=mix(.3,.5,fr),base=mix(-.3,-.62,fr),sp=mix(.16,.26,fr);
     float x=uv.x/sp+fr*.5,id=floor(x+.5),dm=9.;
     for(int k=-1;k<=1;k++){float j=id+float(k),h=hash(vec2(j,fr*7.+1.));vec2 q=vec2((x-j)*sp,uv.y-base)/sc;
-      if(h>.5)q.x=-q.x;float mv=h<.45?4.:(h<.75?1.:0.);
-      dm=min(dm,fig(q,uPhase+(h<.45?0.:h*.3),mv)*sc);}
+      if(h>.5)q.x=-q.x;float h2=hash(vec2(j,fr*3.+9.)),mv=h<.4?4.:(h<.6?1.:(h<.75?0.:(h<.88?8.:7.)));
+      if(h2>.7&&mv>3.5&&mv<4.5)mv=12.;
+      dm=min(dm,fig(q,uPhase+(h<.4?0.:h2*.25),mv)*sc);}
     float w=mix(.011,.019,fr),m=smoothstep(w,w*.6,dm);
     c=mix(c,c*.12*(1.-fr),m);c+=pal(fr*.3+uTime*.04)*smoothstep(w*2.2,w,dm)*(1.-m)*.35;}
   return c;}
