@@ -129,7 +129,7 @@ body.screen-mode .screen.hot,body.moving .screen.hot{filter:none}
 .os-now i{width:34px;height:34px;border-radius:8px;background:var(--lamp);flex-shrink:0}
 .os-now span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .os-view{position:absolute;left:0;right:0;top:72px;bottom:0;display:none;box-sizing:border-box}
-#laptop[data-os="home"] .os-view[data-view="home"],#laptop[data-os="spotify"] .os-view[data-view="spotify"],#laptop[data-os="app"] .os-view[data-view="app"]{display:flex}
+#laptop[data-os="home"] .os-view[data-view="home"],#laptop[data-os="spotify"] .os-view[data-view="spotify"],#laptop[data-os="app"] .os-view[data-view="app"],#laptop[data-os="tracks"] .os-view[data-view="tracks"]{display:flex}
 .os-view[data-view="home"]{flex-direction:column;gap:46px;padding:56px 72px 90px}
 .os-view h3{margin:0;font-size:64px;font-weight:300;letter-spacing:-.01em;line-height:1}
 .os-label{font:20px var(--mono);color:var(--dim);letter-spacing:.12em;display:flex;gap:18px;align-items:baseline}
@@ -260,6 +260,18 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #laptop .lp-card b{font:28px 'Gochi Hand',cursive}
 #laptop .lp-card small,#laptop .lp-row small,#laptop .lp-row .r,#laptop .lp-hint,#laptop .lp-empty{color:var(--os-dim);font-family:'Special Elite',monospace}
 #laptop .lp-row b{font:28px 'Gochi Hand',cursive}
+/* My tracks on the laptop */
+#laptop .os-tr{display:flex;flex-direction:column;gap:22px;flex:1;min-height:0;padding:28px 36px}
+#laptop .os-tr .lp-row{grid-template-columns:44px 76px minmax(0,1fr) auto}
+#laptop .os-tr .lp-row .no{font:24px 'Special Elite',monospace;color:var(--os-dim);text-align:center}
+#laptop .os-tr .lp-row.now{outline:2.5px solid var(--os-ink)}
+#laptop .os-tr .lp-row.now .no{color:var(--os-ink)}
+#laptop .os-tr .lp-row .eq{display:none;gap:4px;align-items:flex-end;justify-content:center;height:26px}
+#laptop .os-tr .lp-row .eq i{width:5px;background:var(--os-ink);animation:osEq .9s ease-in-out infinite alternate}
+#laptop .os-tr .lp-row .eq i:nth-child(2){animation-delay:-.3s}#laptop .os-tr .lp-row .eq i:nth-child(3){animation-delay:-.6s}
+#laptop .os-tr .lp-row.now.on .eq{display:flex}#laptop .os-tr .lp-row.now.on .no{display:none}
+@keyframes osEq{from{height:6px}to{height:26px}}
+body:not(.screen-mode) #laptop .os-tr .eq i{animation-play-state:paused}
 /* the monitor's wallpaper */
 #monitor{background:var(--os-bg);color:var(--os-ink)}
 #monitor .inner,#monitor .bar{display:none}
@@ -735,6 +747,13 @@ body.intro .player{transform:translateY(110%)}
         <div class="lp-grid" id="lpGrid"></div>
         <p class="lp-hint" id="lpHint">Pick one to play it on the monitor.</p>
       </div>
+      </div></div>
+
+      <div class="os-view" data-view="tracks"><div class="os-win">
+        <div class="os-win-top"><button class="os-btn" data-os-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Home</button><div class="t">My tracks<small>plays with visuals on the monitor</small></div>
+          <button class="os-btn solid" id="osTrPlay">Play</button></div>
+        <div class="os-tr"><div class="lp-grid rows" id="osTrList"></div>
+          <p class="lp-hint">Pick a song. The monitor turns into the visualizer while it plays.</p></div>
       </div></div>
 
       <div class="os-view" data-view="app"><div class="os-win">
@@ -1253,7 +1272,7 @@ const asTrack = (i) => ({ id:i.id, title:i.title, artist:i.artist || 'idk∗wtnt
 library().then(items => {
   ITEMS = items;
   const tracks = items.filter(i => i.type === 'track');
-  if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); }
+  if (tracks.length){ TRACKS = tracks.map(asTrack); load(0, false); if ($('#laptop').dataset.os === 'tracks') renderOsTracks(); }
 });
 
 /* ---------- rooms ---------- */
@@ -1608,9 +1627,33 @@ function laptopIsSpotify(){
 function osGo(view){
   $('#laptop').dataset.os = view;
   if (view === 'spotify') renderLaptop();
+  if (view === 'tracks') renderOsTracks();
 }
+// My tracks, right on the laptop: the same songs as the player at the bottom
+function renderOsTracks(){
+  const box = $('#osTrList'); box.innerHTML = '';
+  if (!TRACKS.length){ box.appendChild(el('p', 'lp-empty', 'No music up yet.')); return; }
+  TRACKS.forEach((t, i) => {
+    const b = el('button', 'lp-row'); b.dataset.i = String(i);
+    const eq = el('span', 'eq'); eq.append(el('i'), el('i'), el('i'));
+    const no = el('span', 'no', String(i + 1).padStart(2, '0'));
+    const img = el('img'); img.src = t.cover || 'img/pour.jpg'; img.alt = '';
+    const mid = el('span'); mid.append(el('b', null, t.title), el('small', null, t.artist || 'idk∗wtnt'));
+    const lead = el('span'); lead.append(no, eq);
+    b.append(lead, img, mid, el('span', 'r', t.length ? fmt(t.length) : (t.src ? '' : 'preview')));
+    b.addEventListener('click', () => { if (i === idx && SRC === 'local'){ togglePlay(); } else load(i, true); markOsTracks(); });
+    box.appendChild(b);
+  });
+  markOsTracks();
+}
+function markOsTracks(){
+  const local = SRC === 'local';
+  document.querySelectorAll('#osTrList .lp-row').forEach(b => { const on = local && +b.dataset.i === idx; b.classList.toggle('now', on); b.classList.toggle('on', on && playing); });
+  $('#osTrPlay').textContent = local && playing ? 'Pause' : 'Play';
+}
+$('#osTrPlay').addEventListener('click', () => { if (SRC !== 'local') load(idx, true); else togglePlay(); markOsTracks(); });
 document.querySelectorAll('[data-os-go]').forEach(b => b.addEventListener('click', () => osGo(b.dataset.osGo)));
-$('#osTracks').addEventListener('click', () => { back(); setTimeout(() => go('sound'), reduce ? 0 : 700); });
+$('#osTracks').addEventListener('click', () => osGo('tracks'));
 function osClock(){
   const d = new Date();
   $('#osClock').textContent = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12:false });
@@ -1621,6 +1664,7 @@ osClock(); setInterval(osClock, 30000);
 setInterval(() => {   // the menu bar shows what the player at the bottom is playing
   const t = $('#trackTitle').textContent;
   $('#osNow').textContent = playing ? t : 'Nothing playing';
+  if ($('#laptop').dataset.os === 'tracks') markOsTracks();
 }, 1000);
 
 // games come from public/apps/apps.json; a game plays here once its build is in public/apps/<id>/
