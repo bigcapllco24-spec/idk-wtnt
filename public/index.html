@@ -121,7 +121,7 @@ body.in-room .scene{filter:brightness(.3) blur(10px);transition:transform var(--
 .os-now span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .os-view{position:absolute;left:0;right:0;top:72px;bottom:0;display:none;box-sizing:border-box}
 #laptop[data-os="home"] .os-view[data-view="home"],#laptop[data-os="spotify"] .os-view[data-view="spotify"],#laptop[data-os="app"] .os-view[data-view="app"]{display:flex}
-.os-view[data-view="home"]{flex-direction:column;gap:42px;padding:52px 72px 56px}
+.os-view[data-view="home"]{flex-direction:column;gap:46px;padding:56px 72px 90px}
 .os-view h3{margin:0;font-size:64px;font-weight:300;letter-spacing:-.01em;line-height:1}
 .os-label{font:20px var(--mono);color:var(--dim);letter-spacing:.12em;display:flex;gap:18px;align-items:baseline}
 .os-label small{font:22px var(--sans);letter-spacing:0}
@@ -198,14 +198,16 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 .os-title em{font:34px 'Gochi Hand',cursive;font-style:normal;color:var(--os-dim);transform:rotate(-3deg);margin-bottom:6px}
 #laptop .os-label{font:24px 'Special Elite',monospace;color:var(--os-ink);letter-spacing:.02em}
 #laptop .os-label small{font:30px 'Gochi Hand',cursive;color:var(--os-dim)}
-#laptop .os-card{background:none;border:0;border-radius:22px;color:var(--os-ink);height:184px}
+#laptop .os-card{background:none;border:0;border-radius:22px;color:var(--os-ink);height:230px}
 #laptop .os-card::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:var(--os-r);box-shadow:3px 4px 0 -1px var(--os-bg),4px 5px 0 0 var(--os-ink);pointer-events:none}
 #laptop .os-card{position:relative}
-#laptop .os-card .ic,#laptop .os-card .ic.small{background:none;width:112px;height:112px}
+#laptop .os-card .ic,#laptop .os-card .ic.small{background:none;width:136px;height:136px}
 #laptop .os-card .ic.small{width:84px;height:84px}
 #laptop .os-card .ic svg{width:100%;height:100%;stroke:var(--os-ink);stroke-width:1.6}
-#laptop .os-card b{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:58px}
-#laptop .os-card.small b{font-size:46px}
+#laptop .os-card b{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:70px}
+#laptop .os-card.small b{font-size:54px}
+#laptop .os-game b{font-size:36px}
+#laptop .os-label{font-size:26px}
 #laptop .os-card small{font:24px 'Special Elite',monospace;color:var(--os-dim)}
 #laptop .os-game{color:var(--os-ink)}
 #laptop .os-game .art{background:none;border:0;border-radius:6px;color:var(--os-dim);font:26px 'Special Elite',monospace}
@@ -219,7 +221,8 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #laptop .os-game small{font:20px 'Special Elite',monospace;color:var(--os-dim)}
 #laptop .os-game:hover .art::before,#laptop .os-card:hover::before{border-width:4px}
 #laptop .os-label .os-ext{margin-left:auto;font:22px 'Special Elite',monospace;color:var(--os-ink);text-decoration:underline;text-underline-offset:5px}
-.os-strip{position:absolute;left:56px;right:56px;bottom:22px;display:flex;justify-content:space-between;font:19px 'Special Elite',monospace;color:var(--os-dim)}
+.os-strip em{font:26px 'Gochi Hand',cursive;font-style:normal;margin-left:14px}
+.os-strip{position:absolute;left:56px;right:56px;bottom:18px;display:flex;align-items:center;justify-content:space-between;font:19px 'Special Elite',monospace;color:var(--os-dim)}
 #laptop .os-win{background:none;border:0;position:relative}
 #laptop .os-win::before{content:"";position:absolute;inset:0;border:3px solid var(--os-ink);border-radius:var(--os-r);box-shadow:3px 4px 0 -1px var(--os-bg),4px 5px 0 0 var(--os-ink);pointer-events:none}
 #laptop .os-win-top{border:0;position:relative}
@@ -283,6 +286,31 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 #monitor .mn-list button.on{color:var(--os-ink);outline:2.5px dashed var(--os-ink)}
 #monitor .mn-list b{font:28px 'Gochi Hand',cursive}
 #mnCover{filter:grayscale(1) contrast(1.1);box-shadow:none}
+/* ---------- the visualizer on the monitor ---------- */
+#monitor .mon-viz{position:absolute;inset:0;display:none;background:#000;overflow:hidden;font-family:var(--sans);color:#FFFFFF}
+#monitor.club .mon-viz{display:block}
+#monitor.club .mon-wip,#monitor.club .mon-now,#monitor.club .inner,#monitor.club .bar{display:none}
+.viz-canvas{position:absolute;inset:0;width:100%;height:100%}
+.vz-top{position:absolute;left:44px;right:44px;top:34px;display:flex;justify-content:space-between;font:500 22px var(--mono);letter-spacing:.12em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.vz-live{display:flex;align-items:center;gap:12px}
+.vz-live i{width:14px;height:14px;border-radius:7px;background:#FF3B3B;box-shadow:0 0 14px #FF3B3B;animation:live 1.2s ease-in-out infinite alternate}
+@keyframes live{to{opacity:.35}}
+.vz-now{position:absolute;left:44px;bottom:58px;display:flex;align-items:flex-end;gap:26px;max-width:80%;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+.vz-now img{width:150px;height:150px;border-radius:10px;object-fit:cover;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.vz-now img[src=""]{display:none}
+.vz-now small{display:block;font:500 18px var(--mono);letter-spacing:.2em;opacity:.8}
+.vz-now b{display:block;font:800 64px/1.02 var(--sans);letter-spacing:-.01em;margin:8px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vz-now span{font:400 30px var(--sans);opacity:.85}
+.vz-bar{position:absolute;left:0;right:0;bottom:0;height:8px;background:rgba(255,255,255,.12)}
+.vz-bar span{display:block;height:100%;width:0;background:#FFFFFF}
+/* visitors: Spotify's own player as a strip along the bottom, over the visuals */
+#monitor.club.embed .mon-embed{display:block;inset:auto 36px 30px 36px;height:152px;background:transparent;border-radius:12px;overflow:hidden;z-index:2}
+#monitor.club.embed .vz-now{bottom:214px}
+#monitor.club.embed .vz-bar{display:none}
+/* club mode: the lasers move faster while Spotify plays */
+body.club .fx .sweep1{animation-duration:3.2s}
+body.club .fx .sweep2{animation-duration:4.6s}
+body.club .fx .g1,body.club .fx .g2,body.club .fx .g3{animation-duration:7s}
 
 /* ---------- Spotify keeps its own colours inside the WIP desktop ---------- */
 #laptop .os-view[data-view="spotify"] .os-win{background:#121212;color:#FFFFFF;font-family:var(--sans);border-radius:16px}
@@ -386,6 +414,8 @@ body.screen-mode .screenbar{display:flex}
   .lp-hint,.lp-empty{font-size:42px}
   /* Spotify's player renders at half size and is scaled up, so its text stays readable */
   #monitor .mon-embed iframe{width:50%;height:50%;transform:scale(2);transform-origin:0 0}
+  #monitor.club.embed .mon-embed{height:304px}
+  #monitor.club.embed .vz-now{bottom:360px}
 }
 .spill{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:.25;transition:opacity .6s ease;border-radius:50%}
 body.lights-off .spill{opacity:.9}
@@ -624,6 +654,11 @@ body.intro .player{transform:translateY(110%)}
       </div>
       <div class="mon-embed" id="monEmbed"></div>
       <div class="mon-app" id="monApp"></div>
+      <div class="mon-viz" id="monViz">
+        <div class="vz-top"><span>IDK∗WTNT</span><span class="vz-live"><i></i>LIVE FROM THE DESK</span></div>
+        <div class="vz-now"><img id="vzCover" alt=""><div><small>NOW PLAYING</small><b id="vzTitle"></b><span id="vzArtist"></span></div></div>
+        <div class="vz-bar"><span id="vzFill"></span></div>
+      </div>
       <div class="mon-now" id="monNow">
         <img id="mnCover" alt="">
         <div class="mn-main">
@@ -639,10 +674,9 @@ body.intro .player{transform:translateY(110%)}
 
     <div class="screen" id="laptop" aria-hidden="true" data-os="home">
       <div class="os-bar"><span class="os-name">IDK∗OS<i>(wip)</i></span>
-        <span class="os-right"><span class="os-now"><i id="osNowArt"></i><span id="osNow">Nothing playing</span></span><span id="osClock"></span><button class="os-mode" id="osMode" aria-label="Switch light and dark"><span class="l">LIGHT</span><span class="sw"></span><span class="d">DARK</span></button></span></div>
+        <span class="os-right"><span class="os-now"><i id="osNowArt"></i><span id="osNow">Nothing playing</span></span><span id="osClock"></span></span></div>
 
       <div class="os-view" data-view="home">
-        <div class="os-title"><h3>What do you want to open?</h3><em>still adding stuff</em></div>
         <div class="os-sec"><div class="os-label">LISTEN</div>
           <div class="os-listen">
             <button class="os-card wide" data-os-go="spotify"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5c5-1.8 11-1.4 16 1.2"/><path d="M5 13c4-1.3 9-1 13 1"/><path d="M6 16.4c3.3-.9 7-.6 10 .8"/></svg></span>
@@ -652,7 +686,7 @@ body.intro .player{transform:translateY(110%)}
           </div></div>
         <div class="os-sec"><div class="os-label">GAMES <small>from Capcade</small><a class="os-ext" href="https://playcapcade.com" target="_blank" rel="noopener">playcapcade.com ↗</a></div>
           <div class="os-games" id="osGames"></div></div>
-        <div class="os-strip"><span>REV. 03 · everything here is a work in progress</span><span>WIP</span></div>
+        <div class="os-strip"><span>REV. 03 · everything here is a work in progress <em>still adding stuff</em></span><button class="os-mode" id="osMode" aria-label="Switch light and dark"><span class="l">LIGHT</span><span class="sw"></span><span class="d">DARK</span></button></div>
       </div>
 
       <div class="os-view" data-view="spotify"><div class="os-win">
@@ -774,6 +808,7 @@ body.intro .player{transform:translateY(110%)}
   </div>
 </footer>
 
+<script src="viz.js"></script>
 <script>
 /* =========================================================
    TRACKS: add your songs here. `src` is a path or URL to an
@@ -996,6 +1031,7 @@ document.querySelector('[data-act="play"]').addEventListener('click', () => togg
    ========================================================= */
 const audio = $('#audio'), canvas = $('#wave'), ctx = canvas.getContext('2d');
 let idx = 0, playing = false, simT = 0, simTimer = null, peaks = [];
+let vizSrc = null;   // what the monitor's visualizer is showing: 'spotify' | 'embed' | 'local'
 let SRC = 'local';            // 'local' = your uploads, 'spotify' = your Spotify library (owner only), 'embed' = Spotify's player on the monitor
 const SP = { pos:0, dur:0, paused:true, ts:0, id:'' };
 let spPlayer = null;
@@ -1054,6 +1090,10 @@ function play(){
   playing = true; $('#player').classList.add('playing'); $('#playBtn').setAttribute('aria-label','Pause');
   pauseVideos();
   const t = track();
+  const mon = $('#monitor');
+  if (t.src && window.Viz && (vizSrc === 'local' || !(mon.classList.contains('app') || mon.classList.contains('embed') || mon.classList.contains('now')))){
+    vizShow('local', { title: t.title, artist: t.artist, cover: t.cover, id: t.id || t.src }); Viz.audio(audio); Viz.play(true);
+  }
   if (t.src){
     audio.play().catch(()=>{});
     if (!t.peaks && !t.peaksLoading){ t.peaksLoading = true; realPeaks(t.src).then(p => { if (p){ t.peaks = p; if (track() === t){ peaks = p; draw(); } } }); }
@@ -1064,6 +1104,7 @@ function pause(){
   if (SRC === 'embed'){ if (embedCtl) embedCtl.pause(); return; }
   playing = false; $('#player').classList.remove('playing'); $('#playBtn').setAttribute('aria-label','Play');
   audio.pause(); clearInterval(simTimer);
+  if (vizSrc === 'local') Viz.play(false);
 }
 function togglePlay(){
   if (SRC === 'spotify'){ if (spPlayer) spPlayer.togglePlay(); return; }
@@ -1350,7 +1391,7 @@ $('#toLaptop').addEventListener('click', () => focusScreen('laptop'));
 // the two hotspots decide where to go based on what's available
 document.querySelector('[data-focus="laptop"]').addEventListener('click', () => focusScreen('laptop'));
 document.querySelector('[data-focus="monitor"]').addEventListener('click', () => {
-  if (embedItem || curApp) focusScreen('monitor'); else go('video');
+  if (embedItem || curApp || vizSrc) focusScreen('monitor'); else go('video');
 });
 
 /* Spotify's player on the monitor, driven through its iFrame API so the bar at the bottom
@@ -1386,6 +1427,7 @@ function onEmbedUpdate(d){
   if (SRC !== 'embed'){ if (d.isPaused) return; showEmbedInBar(embedItem); }   // they pressed play on the monitor itself
   Object.assign(SP, { pos: (d.position || 0) / 1000, dur: (d.duration || 0) / 1000, paused: !!d.isPaused, ts: Date.now() });
   setPlayingUI(!d.isPaused);
+  if (vizSrc === 'embed'){ Viz.clock(() => spPos()); Viz.play(!d.isPaused); clubLights(!d.isPaused); }
   const preview = d.duration > 0 && d.duration <= 31000;
   $('#trackArtist').textContent = (embedItem.by || TYPE_LABEL[embedItem.type] || 'Spotify') + (preview ? ' · 30s preview' : ' · Spotify');
   draw();
@@ -1402,6 +1444,7 @@ function plainEmbed(item){
 function openOnMonitor(item){
   embedItem = item; nowMeta = null;
   $('#monitor').classList.remove('now', 'app'); $('#monitor').classList.add('embed');
+  vizShow('embed', { title: item.name, artist: item.by || TYPE_LABEL[item.type] || 'Spotify', cover: item.image, id: item.id }); Viz.clock(() => spPos()); Viz.play(false);
   showEmbedInBar(item);
   focusScreen('monitor');
   const uri = `spotify:${item.type}:${item.id}`;
@@ -1549,7 +1592,8 @@ function playApp(a){
   f.src = a.entry; f.title = a.title; f.allow = 'autoplay; fullscreen; gamepad';
   f.setAttribute('allowfullscreen', '');
   box.appendChild(f);
-  $('#monitor').classList.remove('embed', 'now'); $('#monitor').classList.add('app');
+  $('#monitor').classList.remove('embed', 'now', 'club'); $('#monitor').classList.add('app');
+  if (window.Viz) Viz.play(false); vizSrc = null; clubLights(false);
   focusScreen('monitor');
   setTimeout(() => f.focus(), reduce ? 0 : 950);
   sendStat({ type:'room', room:'game:' + a.id });
@@ -1615,6 +1659,7 @@ let nowMeta = null, nowBody = null;
 async function showNow(meta, body, zoom){
   nowMeta = meta; nowBody = body; embedItem = { ...meta, url: meta.url || (meta.id ? `https://open.spotify.com/${meta.type}/${meta.id}` : 'https://open.spotify.com') };
   $('#monitor').classList.remove('embed', 'app'); $('#monitor').classList.add('now');
+  vizShow('spotify', { title: meta.name, artist: meta.ctx || 'Spotify', cover: meta.image, id: meta.id }); Viz.clock(() => spPos());
   $('#mnCtx').textContent = `${meta.ctx || 'Playing'} · ${meta.name}`;
   if (meta.image) $('#mnCover').src = meta.image;
   if (zoom) focusScreen('monitor');
@@ -1670,6 +1715,10 @@ function onSpState(state){
   $('#trackTitle').textContent = t.name; $('#trackArtist').textContent = t.artists.map(a => a.name).join(', ') + ' · Spotify';
   const img = t.album.images[0]?.url; if (img && $('#cover').src !== img) $('#cover').src = img;
   peaks = fakePeaks(SP.id); draw();
+  if (vizSrc === 'spotify'){
+    if (vizInfo.last !== t.uri){ vizInfo.last = t.uri; vizInfo({ title: t.name, artist: t.artists.map(a => a.name).join(', '), cover: img, id: t.uri }); }
+    Viz.clock(() => spPos()); Viz.play(!state.paused); clubLights(!state.paused);
+  }
   if (nowMeta){
     $('#mnTitle').textContent = t.name; $('#mnArtist').textContent = t.artists.map(a => a.name).join(', ') + (t.album?.name ? ' · ' + t.album.name : '');
     if (img && $('#mnCover').src !== img) $('#mnCover').src = img;
@@ -1682,6 +1731,35 @@ if (ownerPw){
   spToken().then(() => { OWNER_SP = true; laptopIsSpotify(); startSdk(); })
     .catch(e => { ownerSpErr = e.message; renderLaptop(); });
 }
+
+/* =========================================================
+   CLUB: songs on the monitor with a live visualizer (viz.js).
+   Spotify (yours or a visitor's) also turns the room into a club: lights off, lasers faster.
+   ========================================================= */
+function vizShow(src, info){
+  if (!window.Viz || !Viz.mount($('#monViz'))) return;
+  vizSrc = src;
+  const m = $('#monitor');
+  m.classList.remove('now', 'app'); if (src !== 'embed') m.classList.remove('embed');
+  m.classList.add('club');
+  vizInfo(info);
+}
+function vizInfo(info){
+  if (!info) return;
+  $('#vzTitle').textContent = info.title || '';
+  $('#vzArtist').textContent = info.artist || '';
+  $('#vzCover').src = info.cover || '';
+  Viz.track({ id: info.id || info.title, cover: info.cover });
+}
+function clubLights(on){
+  body.classList.toggle('club', on);
+  if (on && lit){ setLights(lit = false); }
+}
+setInterval(() => {   // progress line under the visuals
+  if (!vizSrc) return;
+  const d = duration(), p = position();
+  $('#vzFill').style.width = (d ? Math.min(100, p / d * 100) : 0) + '%';
+}, 500);
 
 /* deep links: idk-wtnt.art/#sound opens straight into a room */
 if (location.hash && CAM[location.hash.slice(1)]) setTimeout(() => go(location.hash.slice(1)), 2600);
