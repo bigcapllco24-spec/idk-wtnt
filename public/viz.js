@@ -42,7 +42,7 @@ vec2 h2(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return
 vec3 ink(vec2 uv){vec2 p=uv*1.6;float t=uTime*.08;vec2 q=vec2(fbm(p+vec2(0.,t)),fbm(p+vec2(3.1,-t)));
   vec2 r=vec2(fbm(p+4.*q+vec2(1.7,9.2)+.15*t),fbm(p+4.*q+vec2(8.3,2.8)-.12*t));float f=fbm(p+4.*r+uBass*.5);
   vec3 c=mix(vec3(0.),pal(f*.8+t),smoothstep(.35,.9,f));c+=uC3*smoothstep(.75,1.1,length(r))*(.4+uBeat);return c*1.3;}
-vec3 caustics(vec2 uv){vec2 p=mod(uv*7.54+vec2(0.,uTime*.15),6.2831)-250.;vec2 i=p;float c=1.;
+vec3 caustics(vec2 uv){vec2 p=mod(uv*3.6+vec2(0.,uTime*.15),6.2831)-250.;vec2 i=p;float c=1.;
   for(int n=0;n<5;n++){float t=uTime*.5*(1.-3.5/float(n+1));i=p+vec2(cos(t-i.x)+sin(t+i.y),sin(t-i.y)+cos(t+i.x));
     c+=1./length(vec2(p.x/(sin(i.x+t)/.005),p.y/(cos(i.y+t)/.005)));}
   c/=5.;c=1.17-pow(c,1.4);float v=clamp(pow(abs(c),8.),0.,1.);return uC1*.1+pal(v*.5+uTime*.03)*v*(1.+uBeat*.7);}
