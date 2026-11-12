@@ -39,7 +39,33 @@ button{font:inherit;color:inherit}
 .scene.nologo .wall{display:none}
 .photo.ext{display:none;pointer-events:none;left:-37.674%;width:177.778%;right:auto;z-index:-1;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%)}
-.scene.fit .photo.ext{display:block}   /* the room, widened with AI, carries on past the photo's edges */
+.scene.fit .photo.ext{display:block}
+/* ---------- lights off: the astronaut projector — aurora on the wall, green lasers ---------- */
+.fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity 1.4s ease;mix-blend-mode:screen}
+.scene.fit .fx{left:-37.674%;width:177.778%;right:auto}
+.fx-in{position:absolute;top:0;height:100%;left:-37.674%;width:177.778%}
+.scene.fit .fx-in{left:0;width:100%}
+body.lights-off .fx{opacity:1}
+body.intro .fx{opacity:0}
+.fx .glow{position:absolute;border-radius:50%;will-change:transform}
+.fx .g1{left:22%;top:-14%;width:42%;height:62%;background:radial-gradient(closest-side,rgba(40,110,255,.75),rgba(40,110,255,0));animation:aur1 19s ease-in-out infinite alternate}
+.fx .g2{left:34%;top:-8%;width:30%;height:48%;background:radial-gradient(closest-side,rgba(30,220,200,.68),rgba(30,220,200,0));animation:aur2 23s ease-in-out infinite alternate}
+.fx .g3{left:44%;top:2%;width:26%;height:40%;background:radial-gradient(closest-side,rgba(80,255,120,.55),rgba(80,255,120,0));animation:aur3 17s ease-in-out infinite alternate}
+.fx .g4{left:14%;top:6%;width:24%;height:34%;background:radial-gradient(closest-side,rgba(70,60,255,.5),rgba(70,60,255,0));animation:aur2 27s ease-in-out infinite alternate-reverse}
+.fx .src{left:calc(65.4% - 1.2%);top:calc(46.5% - 2.2%);width:2.4%;height:4.4%;background:radial-gradient(closest-side,rgba(220,255,220,.95),rgba(60,255,90,.5) 40%,rgba(60,255,90,0))}
+@keyframes aur1{0%{transform:translate(0,0) rotate(-8deg) scale(1)}100%{transform:translate(6%,4%) rotate(10deg) scale(1.15)}}
+@keyframes aur2{0%{transform:translate(0,0) rotate(6deg) scale(1.1)}100%{transform:translate(-8%,6%) rotate(-12deg) scale(.95)}}
+@keyframes aur3{0%{transform:translate(0,0) scale(.9)}100%{transform:translate(10%,-4%) scale(1.2)}}
+.fx svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fx .beams line{stroke:#46FF5A;stroke-linecap:round}
+.fx .beams .wide{stroke-width:7;opacity:.10}
+.fx .beams .thin{stroke-width:1.6;opacity:.75}
+.fx .sweep1{transform-box:view-box;transform-origin:1550px 465px;animation:sweep 9s ease-in-out infinite alternate}
+.fx .sweep2{transform-box:view-box;transform-origin:1550px 465px;animation:sweep 13s ease-in-out infinite alternate-reverse}
+@keyframes sweep{0%{transform:rotate(-5deg)}100%{transform:rotate(6deg)}}
+.fx .stars circle{fill:#9DFFB0;animation:twinkle 3.2s ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.15}100%{opacity:.9}}
+@media (prefers-reduced-motion: reduce){.fx .glow,.fx .sweep1,.fx .sweep2,.fx .stars circle{animation:none}}   /* the room, widened with AI, carries on past the photo's edges */
 .backdrop{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(40px) brightness(.5) saturate(.95);transform:scale(1.04);pointer-events:none;transition:filter .6s ease}
 body.lights-off .backdrop,body.intro .backdrop{filter:blur(36px) brightness(.08) saturate(.6)}
 @media (max-aspect-ratio: 1/1){.backdrop{display:none}}
@@ -549,6 +575,11 @@ body.intro .player{transform:translateY(110%)}
     <img class="photo" src="img/desk-2400.jpg" srcset="img/desk-1400.jpg 1400w, img/desk-2400.jpg 2400w" sizes="max(100vw, 133vh)"
          alt="My desk at night: a monitor and laptop, a yellow lamp, AKAI keys, an acoustic guitar, figures and stickers" draggable="false">
     <img class="photo ext" src="img/desk-wide.jpg" alt="" aria-hidden="true" draggable="false">
+    <div class="fx" aria-hidden="true"><div class="fx-in">
+      <i class="glow g1"></i><i class="glow g2"></i><i class="glow g3"></i><i class="glow g4"></i>
+      <svg viewBox="0 0 2370 1000" preserveAspectRatio="none" id="fxSvg"><g class="stars"></g><g class="beams sweep1"></g><g class="beams sweep2"></g></svg>
+      <i class="glow src"></i>
+    </div></div>
 
     <div class="spill mon" aria-hidden="true"></div>
     <div class="spill lap" aria-hidden="true"></div>
@@ -910,6 +941,28 @@ document.querySelectorAll('[data-screen]').forEach(b => {
   ['pointerenter','focus'].forEach(ev => b.addEventListener(ev, () => s.classList.add('hot')));
   ['pointerleave','blur'].forEach(ev => b.addEventListener(ev, () => s.classList.remove('hot')));
 });
+
+/* ---------- the astronaut projector (lights off) ---------- */
+(function fx(){
+  const NS = 'http://www.w3.org/2000/svg', svg = $('#fxSvg'); if (!svg) return;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const ox = 1550, oy = 465;
+  svg.querySelectorAll('.beams').forEach((g, k) => {
+    for (let i = 0; i < 22; i++){
+      const a = (192 + rnd() * 96) * Math.PI / 180, len = 2200 + rnd() * 900;   // up and to the left, across the wall
+      const x = ox + Math.cos(a) * len, y = oy + Math.sin(a) * len * (0.55 + rnd() * 0.25);
+      ['wide', 'thin'].forEach(c => { const l = document.createElementNS(NS, 'line');
+        l.setAttribute('x1', ox); l.setAttribute('y1', oy); l.setAttribute('x2', x.toFixed(0)); l.setAttribute('y2', y.toFixed(0)); l.setAttribute('class', c); g.appendChild(l); });
+    }
+  });
+  const stars = svg.querySelector('.stars');
+  for (let i = 0; i < 140; i++){
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', (380 + rnd() * 1500).toFixed(0)); c.setAttribute('cy', (10 + rnd() * 420).toFixed(0));
+    c.setAttribute('r', (1.4 + rnd() * 2.4).toFixed(1)); c.style.animationDelay = (rnd() * 3.2).toFixed(2) + 's';
+    stars.appendChild(c);
+  }
+})();
 
 /* ---------- the lamp ---------- */
 function setLights(on){
