@@ -1152,8 +1152,12 @@ function play(){
   pauseVideos();
   const t = track();
   const mon = $('#monitor');
-  if (t.src && window.Viz && (vizSrc === 'local' || !(mon.classList.contains('app') || mon.classList.contains('embed') || mon.classList.contains('now')))){
-    vizShow('local', { title: t.title, artist: t.artist, cover: t.cover, id: t.id || t.src }); Viz.audio(audio); Viz.play(true);
+  // your own songs take the monitor (unless an app is open there): the visuals follow the real audio,
+  // or a tempo clock for the placeholder tracks that have no file yet. The room goes club, like with Spotify.
+  if (window.Viz && (vizSrc === 'local' || !mon.classList.contains('app'))){
+    vizShow('local', { title: t.title, artist: t.artist, cover: t.cover, id: t.id || t.src || t.title });
+    if (t.src) Viz.audio(audio); else Viz.clock(() => simT);
+    Viz.play(true); clubLights(true);
   }
   if (t.src){
     audio.play().catch(()=>{});
@@ -1165,7 +1169,7 @@ function pause(){
   if (SRC === 'embed'){ if (embedCtl) embedCtl.pause(); return; }
   playing = false; $('#player').classList.remove('playing'); $('#playBtn').setAttribute('aria-label','Play');
   audio.pause(); clearInterval(simTimer);
-  if (vizSrc === 'local') Viz.play(false);
+  if (vizSrc === 'local'){ Viz.play(false); clubLights(false); }
 }
 function togglePlay(){
   if (SRC === 'spotify'){ if (spPlayer) spPlayer.togglePlay(); return; }
