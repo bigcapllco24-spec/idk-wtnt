@@ -303,6 +303,27 @@ body.lights-off .os-mode .l{opacity:.45} body.lights-off .os-mode .d{opacity:1}
 .vz-now span{font:400 30px var(--sans);opacity:.85}
 .vz-bar{position:absolute;left:0;right:0;bottom:0;height:8px;background:rgba(255,255,255,.12)}
 .vz-bar span{display:block;height:100%;width:0;background:#FFFFFF}
+/* between songs: the title card */
+.vz-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;transition:opacity .6s ease;pointer-events:none;text-shadow:0 2px 24px rgba(0,0,0,.8)}
+.vz-card small{font:500 20px var(--mono);letter-spacing:.3em;opacity:.85}
+.vz-card b{font:800 96px/1 var(--sans);margin:18px 60px 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vz-card span{font:400 36px var(--sans);opacity:.9}
+.vz-chips{margin-top:34px;display:flex;gap:12px}
+.vz-chips i{font:500 18px var(--mono);font-style:normal;letter-spacing:.12em;text-transform:uppercase;padding:8px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.5)}
+#monViz.carding .vz-card{opacity:1}
+#monViz.carding .vz-now{opacity:0}
+.vz-now{transition:opacity .6s ease}
+/* the visuals controls: on the monitor, shown when you zoom in on it */
+.vz-ctl{position:absolute;right:44px;top:84px;display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:18px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .4s ease}
+body.screen-mode #monitor.active .vz-ctl{opacity:1;pointer-events:auto}
+.vz-row{display:flex;align-items:center;gap:10px}
+.vz-lbl{width:104px;font:500 15px var(--mono);letter-spacing:.12em;color:#B3B3B3}
+.vz-ctl button{height:44px;padding:0 18px;border-radius:22px;border:2px solid rgba(255,255,255,.25);background:transparent;color:#FFFFFF;font:500 18px var(--sans);cursor:pointer}
+.vz-ctl button[aria-pressed=true]{background:#FFFFFF;color:#000000;border-color:#FFFFFF}
+.vz-sets{display:flex;gap:8px}
+.vz-sets button{width:44px;padding:0;border-radius:50%}
+.vz-sets button[aria-pressed=true]{box-shadow:0 0 0 3px #000000,0 0 0 5px #FFFFFF}
+.vz-st{margin-left:8px;font:400 17px var(--sans);color:#B3B3B3}
 /* visitors: Spotify's own player as a strip along the bottom, over the visuals */
 #monitor.club.embed .mon-embed{display:block;inset:auto 36px 30px 36px;height:152px;background:transparent;border-radius:12px;overflow:hidden;z-index:2}
 #monitor.club.embed .vz-now{bottom:214px}
@@ -658,6 +679,11 @@ body.intro .player{transform:translateY(110%)}
         <div class="vz-top"><span>IDK∗WTNT</span><span class="vz-live"><i></i>LIVE FROM THE DESK</span></div>
         <div class="vz-now"><img id="vzCover" alt=""><div><small>NOW PLAYING</small><b id="vzTitle"></b><span id="vzArtist"></span></div></div>
         <div class="vz-bar"><span id="vzFill"></span></div>
+        <div class="vz-card" id="vzCard" aria-live="polite"><small id="vzcNum"></small><b id="vzcTitle"></b><span id="vzcArtist"></span><div class="vz-chips"><i id="vzcScene"></i><i id="vzcSet"></i></div></div>
+        <div class="vz-ctl" id="vzCtl">
+          <div class="vz-row"><span class="vz-lbl">COLOURS</span><button class="vz-auto" data-col="auto" aria-pressed="true">Auto</button><span id="vzSets" class="vz-sets"></span></div>
+          <div class="vz-row"><span class="vz-lbl">SCENES</span><button data-scn="shuffle" aria-pressed="true">New every song</button><button data-scn="lock" aria-pressed="false">Keep this one</button><span class="vz-st" id="vzSt"></span></div>
+        </div>
       </div>
       <div class="mon-now" id="monNow">
         <img id="mnCover" alt="">
@@ -1427,7 +1453,12 @@ function onEmbedUpdate(d){
   if (SRC !== 'embed'){ if (d.isPaused) return; showEmbedInBar(embedItem); }   // they pressed play on the monitor itself
   Object.assign(SP, { pos: (d.position || 0) / 1000, dur: (d.duration || 0) / 1000, paused: !!d.isPaused, ts: Date.now() });
   setPlayingUI(!d.isPaused);
-  if (vizSrc === 'embed'){ Viz.clock(() => spPos()); Viz.play(!d.isPaused); clubLights(!d.isPaused); }
+  if (vizSrc === 'embed'){
+    Viz.clock(() => spPos()); Viz.play(!d.isPaused); clubLights(!d.isPaused);
+    const dur = d.duration || 0, pos = d.position || 0, L = onEmbedUpdate.last || { dur, pos };
+    if (Math.abs(dur - L.dur) > 1500 || (pos + 5000 < L.pos)) vizSong({ title: embedItem.name, artist: 'Track ' + (vizTrackNo + 1), cover: embedItem.image, id: embedItem.id + ':' + dur + ':' + Date.now() });
+    onEmbedUpdate.last = { dur, pos };
+  }
   const preview = d.duration > 0 && d.duration <= 31000;
   $('#trackArtist').textContent = (embedItem.by || TYPE_LABEL[embedItem.type] || 'Spotify') + (preview ? ' · 30s preview' : ' · Spotify');
   draw();
@@ -1659,7 +1690,7 @@ let nowMeta = null, nowBody = null;
 async function showNow(meta, body, zoom){
   nowMeta = meta; nowBody = body; embedItem = { ...meta, url: meta.url || (meta.id ? `https://open.spotify.com/${meta.type}/${meta.id}` : 'https://open.spotify.com') };
   $('#monitor').classList.remove('embed', 'app'); $('#monitor').classList.add('now');
-  vizShow('spotify', { title: meta.name, artist: meta.ctx || 'Spotify', cover: meta.image, id: meta.id }); Viz.clock(() => spPos());
+  vizShow('spotify', null); Viz.clock(() => spPos());   // the song itself arrives from the player a moment later
   $('#mnCtx').textContent = `${meta.ctx || 'Playing'} · ${meta.name}`;
   if (meta.image) $('#mnCover').src = meta.image;
   if (zoom) focusScreen('monitor');
@@ -1716,7 +1747,7 @@ function onSpState(state){
   const img = t.album.images[0]?.url; if (img && $('#cover').src !== img) $('#cover').src = img;
   peaks = fakePeaks(SP.id); draw();
   if (vizSrc === 'spotify'){
-    if (vizInfo.last !== t.uri){ vizInfo.last = t.uri; vizInfo({ title: t.name, artist: t.artists.map(a => a.name).join(', '), cover: img, id: t.uri }); }
+    vizSong({ title: t.name, artist: t.artists.map(a => a.name).join(', '), cover: img, id: t.uri });
     Viz.clock(() => spPos()); Viz.play(!state.paused); clubLights(!state.paused);
   }
   if (nowMeta){
@@ -1736,20 +1767,57 @@ if (ownerPw){
    CLUB: songs on the monitor with a live visualizer (viz.js).
    Spotify (yours or a visitor's) also turns the room into a club: lights off, lasers faster.
    ========================================================= */
+let vizKey = null, vizTrackNo = 0, vizCardT = 0;
 function vizShow(src, info){
   if (!window.Viz || !Viz.mount($('#monViz'))) return;
+  const first = !$('#monitor').classList.contains('club');
   vizSrc = src;
   const m = $('#monitor');
   m.classList.remove('now', 'app'); if (src !== 'embed') m.classList.remove('embed');
   m.classList.add('club');
-  vizInfo(info);
+  if (first) vizKey = null;
+  if (info) vizSong(info, first);
 }
-function vizInfo(info){
+// a new song: Viz fades out over 2 beats, picks the song's scene and colours, then the title card shows
+function vizSong(info, first){
   if (!info) return;
-  $('#vzTitle').textContent = info.title || '';
-  $('#vzArtist').textContent = info.artist || '';
-  $('#vzCover').src = info.cover || '';
-  Viz.track({ id: info.id || info.title, cover: info.cover });
+  if (first === undefined) first = vizKey === null;
+  const key = info.id || info.title;
+  if (key === vizKey) return;
+  vizKey = key; vizTrackNo++;
+  const corner = () => { $('#vzTitle').textContent = info.title || ''; $('#vzArtist').textContent = info.artist || ''; $('#vzCover').src = info.cover || ''; };
+  Viz.song(info, { first, onDark: (now) => { corner(); vizCard(info, now); } });
+}
+function vizCard(info, now){
+  $('#vzcNum').textContent = 'TRACK ' + String(vizTrackNo).padStart(2, '0');
+  $('#vzcTitle').textContent = info.title || ''; $('#vzcArtist').textContent = info.artist || '';
+  vizStatus(now);
+  $('#monViz').classList.add('carding');
+  clearTimeout(vizCardT); vizCardT = setTimeout(() => $('#monViz').classList.remove('carding'), 3200);
+}
+function vizStatus(now){
+  now = now || Viz.now();
+  $('#vzcScene').textContent = now.scene; $('#vzcSet').textContent = now.set;
+  const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+  $('#vzSt').textContent = cap(now.scene) + ' · ' + now.set;
+  document.querySelectorAll('#vzCtl [data-col]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.col === String(now.prefs.colours))));
+  document.querySelectorAll('#vzCtl [data-scn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scn === now.prefs.scene)));
+}
+if (window.Viz){
+  // the eight colour sets as swatches; your choice is remembered in this browser
+  Viz.SETS.forEach((st, i) => { const b = document.createElement('button'); b.dataset.col = String(i); b.title = st.name; b.setAttribute('aria-label', st.name + ' colours');
+    b.style.background = `linear-gradient(120deg, ${st.hex[0]}, ${st.hex[1]}, ${st.hex[2]})`; $('#vzSets').appendChild(b); });
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('idk-viz') || 'null'); } catch {}
+  if (saved) Viz.prefs(saved);
+  const save = () => { try { localStorage.setItem('idk-viz', JSON.stringify(Viz.now().prefs)); } catch {} vizStatus(); };
+  $('#vzCtl').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.col) Viz.prefs({ colours: b.dataset.col === 'auto' ? 'auto' : +b.dataset.col });
+    if (b.dataset.scn) Viz.prefs({ scene: b.dataset.scn });
+    save();
+  });
+  Viz.onCover(() => setTimeout(() => vizStatus(), 0));
+  vizStatus();
 }
 function clubLights(on){
   body.classList.toggle('club', on);

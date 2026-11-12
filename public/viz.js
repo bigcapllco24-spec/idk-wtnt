@@ -1,5 +1,5 @@
 /* idk∗wtnt visualizer engine
-   A WebGL canvas for the monitor: fourteen scenes that change every 16 bars, coloured from the cover art,
+   A WebGL canvas for the monitor: fourteen scenes, one per song, in one of eight colour sets, coloured from the cover art,
    pulsing on the beat. For your own uploads the beat comes from the real audio; Spotify doesn't let
    websites hear its audio, so for Spotify a tempo clock follows the song's position instead.
 
@@ -10,6 +10,10 @@
    Viz.play(true | false)           run / idle
    Viz.set({scene, speed, punch, bpm, palette})   tuning: scene 'auto' or 0-13, palette [[r,g,b] x3] (0-1)
    Viz.SCENES                       the scene names, in number order
+   Viz.SETS                         the colour sets [{name, hex:[3]}]
+   Viz.song(info, {first, onDark})  a new song: fade out over 2 beats, pick its scene and colours, fade back in
+   Viz.prefs({colours, scene})      colours: 'auto' or a set index; scene: 'shuffle' or 'lock' (keeps the current one)
+   Viz.now()                        {scene, set} names for what's showing
 */
 (function(){
   const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
@@ -18,7 +22,7 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-uniform vec2 uRes;uniform float uTime,uBeat,uBass,uHigh;uniform int uScene;uniform vec3 uC1,uC2,uC3;
+uniform vec2 uRes;uniform float uTime,uBeat,uBass,uHigh,uFade;uniform int uScene;uniform vec3 uC1,uC2,uC3;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.02;a*=.5;}return v;}
@@ -77,11 +81,16 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
   else if(uScene==4)c=ink(uv);else if(uScene==5)c=caustics(uv);else if(uScene==6)c=lava(uv);else if(uScene==7)c=curtains(uv);
   else if(uScene==8)c=cells(uv);else if(uScene==9)c=topo(uv);else if(uScene==10)c=truchet(uv);else if(uScene==11)c=moire(uv);
   else if(uScene==12)c=hexes(uv);else c=opart(uv);
-  c+=uHigh*.06*hash(gl_FragCoord.xy+uTime);c*=1.-.35*dot(uv*.8,uv*.8);gl_FragColor=vec4(c,1.);}`;
+  c+=uHigh*.06*hash(gl_FragCoord.xy+uTime);c*=1.-.35*dot(uv*.8,uv*.8);gl_FragColor=vec4(c*uFade,1.);}`;
 
   const SCENES = ['tunnel','grid','flow','kaleido','ink','caustics','lava','curtains','cells','topo','truchet','moire','hexes','op-art'];
-  const S = { gl:null, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
-    pal:[[.16,.43,1],[.12,.86,.78],[.31,1,.47]], base:0, cfg:{ scene:'auto', speed:1, punch:1, bpm:124 }, getPos:null, an:null, data:null, avg:0, env:0, lastHit:0, bpm:124 };
+  const SETS = [
+    ['Aurora', '#296EFF', '#1FDBC7', '#4FFF78'], ['Ocean', '#0A2A6B', '#00B4D8', '#90E0EF'], ['Sunset', '#FF5E3A', '#FF2D95', '#FFC86B'],
+    ['Ember', '#7A0C00', '#FF3D00', '#FFB300'], ['Acid', '#00FF85', '#B6FF00', '#F4FF5E'], ['Bloom', '#8A5CFF', '#FF7AD9', '#FFD1F0'],
+    ['Ultraviolet', '#6A00FF', '#FF006E', '#00D1FF'], ['Mono', '#1E1E1E', '#8A8A8A', '#FFFFFF'],
+  ].map(([name, ...hex]) => ({ name, hex, rgb: hex.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)) }));
+  const S = { gl:null, fade:1, fadeTo:1, fadeRate:2, set:0, coverSet:0, hist:[], songScene:2, prefs:{ colours:'auto', scene:'shuffle' }, cv:null, u:{}, run:false, raf:0, t0:performance.now(), time:0, last:0,
+    pal:[[.16,.43,1],[.12,.86,.78],[.31,1,.47]], palTo:null, base:0, cfg:{ scene:'auto', speed:1, punch:1, bpm:124 }, getPos:null, an:null, data:null, avg:0, env:0, lastHit:0, bpm:124 };
 
   function compile(gl, type, src){ const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
@@ -98,7 +107,7 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
       const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ['uRes','uTime','uBeat','uBass','uHigh','uScene','uC1','uC2','uC3'].forEach(n => S.u[n] = gl.getUniformLocation(pr, n));
+      ['uRes','uTime','uBeat','uBass','uHigh','uFade','uScene','uC1','uC2','uC3'].forEach(n => S.u[n] = gl.getUniformLocation(pr, n));
       gl.uniform2f(S.u.uRes, cv.width, cv.height);
     } catch (e) { console.warn('viz', e); return false; }
     S.gl = gl; S.cv = cv; el.prepend(cv);   // under the now-playing text
@@ -122,12 +131,45 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
         const pick = [px[0], px[Math.floor(px.length * .08)], px[Math.floor(px.length * .2)]].map(p => {
           const m = Math.max(...p.c, .001), k = Math.min(1.6, 1 / m); return p.c.map(v => Math.min(1, v * k));
         });
-        if (px[0].s > .08){ S.pal = pick; if (S.onPalette) S.onPalette(pick); }
+        // match the cover to the closest colour set (a grey cover gets Mono)
+        let best = 7, bd = 1e9;
+        if (px[0].s > .08) SETS.forEach((st, k) => { if (k === 7) return;
+          let d = 0; pick.forEach(c => { d += Math.min(...st.rgb.map(r => (r[0]-c[0])**2 + (r[1]-c[1])**2 + (r[2]-c[2])**2)); });
+          if (d < bd){ bd = d; best = k; } });
+        S.coverSet = best; if (S.prefs.colours === 'auto') applySet(best); if (S.onCover) S.onCover(best);
       } catch (e) { /* the image server didn't allow reading its pixels: keep the current colours */ }
     };
     img.src = url;
   }
+  function applySet(k){ S.set = k; S.palTo = SETS[k].rgb.map(c => c.slice()); if (S.onPalette) S.onPalette(SETS[k].rgb); }
 
+  function pickScene(){
+    if (S.prefs.scene === 'lock') return S.songScene;
+    const n = SCENES.length, avoid = S.hist.slice(-4); let k, tries = 0;
+    do { k = Math.floor(Math.random() * n); } while (avoid.includes(k) && ++tries < 50);
+    return k;
+  }
+  function song(info, opts){
+    opts = opts || {};
+    const go = () => {
+      S.songScene = pickScene(); S.hist.push(S.songScene); if (S.hist.length > 8) S.hist.shift();
+      if (S.prefs.colours === 'auto'){ S.coverSet = S.set; if (info && info.cover) palette(info.cover); }
+      else applySet(+S.prefs.colours);
+      if (opts.onDark) opts.onDark(now());
+      S.fadeTo = 1; S.fadeRate = 1 / 1.2;              // fade back in over 1.2 s
+    };
+    if (opts.first || !S.gl){ S.fade = 0; go(); return; }
+    S.fadeTo = 0; S.fadeRate = S.cfg.bpm / 120;          // fade out over 2 beats
+    clearTimeout(S.songT); S.songT = setTimeout(go, 120000 / S.cfg.bpm);
+    if (S.gl && !S.run) loop();
+  }
+  function prefs(p){
+    Object.assign(S.prefs, p || {});
+    if (p && p.scene === 'lock') S.songScene = S.scene != null ? S.scene : S.songScene;
+    if (p && 'colours' in p){ applySet(p.colours === 'auto' ? S.coverSet : +p.colours); }
+    if (S.gl && !S.run) loop();
+  }
+  function now(){ return { scene: SCENES[S.songScene], set: SETS[S.set].name, prefs: { ...S.prefs } }; }
   function track(info){
     let h = 0; const id = String(info && (info.id || info.cover) || Math.random()); for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0;
     S.base = Math.abs(h) % SCENES.length; S.env = 0;
@@ -169,15 +211,18 @@ void main(){vec2 uv=(gl_FragCoord.xy-.5*uRes)/uRes.y;uv*=1.-uBeat*.04;vec3 c;
     S.time += dt * (S.run ? 1 : .15) * S.cfg.speed;
     const bars = Math.floor(Math.max(0, pos) * S.cfg.bpm / 60 / 64);
     gl.uniform1f(S.u.uTime, S.time); gl.uniform1f(S.u.uBeat, beat); gl.uniform1f(S.u.uBass, bass); gl.uniform1f(S.u.uHigh, high);
-    S.scene = S.cfg.scene === 'auto' ? (S.base + bars) % SCENES.length : +S.cfg.scene;
+    S.scene = S.cfg.scene === 'auto' ? S.songScene : +S.cfg.scene;
+    S.fade += Math.sign(S.fadeTo - S.fade) * Math.min(Math.abs(S.fadeTo - S.fade), dt * S.fadeRate);
+    if (S.palTo){ let done = true; S.pal = S.pal.map((c, i) => c.map((v, j) => { const t = S.palTo[i][j], nv = v + (t - v) * Math.min(1, dt * 3); if (Math.abs(t - nv) > .002) done = false; return nv; })); if (done) S.palTo = null; }
+    gl.uniform1f(S.u.uFade, S.fade);
     gl.uniform1i(S.u.uScene, S.scene);
     gl.uniform3fv(S.u.uC1, S.pal[0]); gl.uniform3fv(S.u.uC2, S.pal[1]); gl.uniform3fv(S.u.uC3, S.pal[2]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (S.run) S.raf = requestAnimationFrame(frame);
+    if (S.run || S.palTo || Math.abs(S.fade - S.fadeTo) > .001) S.raf = requestAnimationFrame(frame);
   }
 
   function set(c){ Object.assign(S.cfg, c || {}); if (c && c.palette) S.pal = c.palette; if (S.gl && !S.run) loop(); }
   function size(w, h){ if (!S.gl) return; S.cv.width = w; S.cv.height = h; S.gl.viewport(0, 0, w, h); S.gl.uniform2f(S.u.uRes, w, h); if (!S.run) loop(); }
   function state(){ return { ...S.cfg, palette: S.pal, scene_now: S.scene, beat: S.beat || 0, level: S.level || 0 }; }
-  window.Viz = { SCENES, mount, track, clock, audio, play, set, state, size, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
+  window.Viz = { SCENES, SETS, song, prefs, now, onCover(fn){ S.onCover = fn; }, mount, track, clock, audio, play, set, state, size, onPalette(fn){ S.onPalette = fn; }, get running(){ return S.run; } };
 })();
