@@ -7,7 +7,7 @@ import { checkKey, checkKind, newKey } from './_keys.js';
 // POST {action:'complete', key, uploadId, parts:[...]}   -> {key}
 // POST {action:'abort', key, uploadId}                   -> {aborted}
 export const onRequestPost = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   if (!env.MEDIA) throw new HttpError(500, 'File storage is not connected.');
   const body = await readJson(request);
   if (body.action === 'start') {
@@ -34,7 +34,7 @@ export const onRequestPost = handle(async ({ request, env }) => {
 });
 
 export const onRequestPut = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   const url = new URL(request.url);
   const key = checkKey(url.searchParams.get('key'));
   const part = Number(url.searchParams.get('part'));

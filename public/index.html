@@ -6,6 +6,7 @@
 <title>idk∗wtnt</title>
 <meta name="description" content="Music, art, tees and other things from my desk.">
 <meta name="theme-color" content="#0D0B09">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=JetBrains+Mono:wght@400;500&family=Cabin+Sketch:wght@400;700&family=Special+Elite&family=Gochi+Hand&display=swap" rel="stylesheet">
@@ -1445,6 +1446,7 @@ function renderGuestbook(box){
   const f = el('form'); f.noValidate = true;
   f.innerHTML = `<label for="gbName">Your name</label><input id="gbName" maxlength="60" autocomplete="name">
     <label for="gbBody">Your note</label><textarea id="gbBody" maxlength="600"></textarea>
+    <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
     <button type="submit">Pin it to the page</button><div class="status" id="gbStatus" role="status"></div>`;
   const notes = el('div', 'notes');
   const add = (n, top) => {
@@ -1456,7 +1458,7 @@ function renderGuestbook(box){
     const name = f.querySelector('#gbName').value.trim(), body = f.querySelector('#gbBody').value.trim(), st = f.querySelector('#gbStatus');
     if (!name || !body){ st.textContent = 'Add your name and a note.'; return; }
     st.textContent = 'Pinning…';
-    try { const { note } = await api.post('/api/notes', { name, body }); add(note, true); f.reset(); st.textContent = 'Pinned. Thanks for stopping by.'; notes.querySelector('.empty')?.remove(); }
+    try { const { note } = await api.post('/api/notes', { name, body, website: f.querySelector('[name=website]').value }); add(note, true); f.reset(); st.textContent = 'Pinned. Thanks for stopping by.'; notes.querySelector('.empty')?.remove(); }
     catch (err) { st.textContent = err.message; }
   });
   wrap.append(f, notes); box.appendChild(wrap);
@@ -1483,7 +1485,18 @@ sendStat({ type:'pageview', ref: document.referrer });
    played through this site's player with Spotify's Web Playback SDK.
    ========================================================= */
 let SHELF = [], embedItem = null, OWNER_SP = false;
-let ownerPw = ''; try { ownerPw = localStorage.getItem('idk-pw') || sessionStorage.getItem('idk-pw') || ''; } catch {}
+// The password itself is never kept in the browser: logging in sets a sign-in cookie that scripts can't read,
+// and only a marker ('cookie') is stored. A password saved by an older version is swapped for the cookie once.
+async function ownerSession(){
+  let v = '', keep = false;
+  try { v = localStorage.getItem('idk-pw') || ''; keep = !!v; if (!v) v = sessionStorage.getItem('idk-pw') || ''; } catch {}
+  if (!v) return false;
+  if (v === 'cookie') return true;
+  let ok = false;
+  try { ok = (await fetch('/api/login', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify({ password: v, remember: keep }) })).ok; } catch { return false; }
+  try { localStorage.removeItem('idk-pw'); sessionStorage.removeItem('idk-pw'); if (ok) (keep ? localStorage : sessionStorage).setItem('idk-pw', 'cookie'); } catch {}
+  return ok;
+}
 const TYPE_LABEL = { playlist:'Playlist', album:'Album', track:'Song', artist:'Artist', episode:'Episode', show:'Podcast' };
 
 function baseRect(){
@@ -1774,7 +1787,7 @@ api.get('/api/spotify/public').then(d => { SHELF = d.items || []; laptopIsSpotif
 let spTok = null;
 async function spToken(){
   if (spTok && spTok.expires > Date.now() + 60000) return spTok.token;
-  const r = await fetch('/api/spotify/token', { headers: { authorization: 'Bearer ' + ownerPw } });
+  const r = await fetch('/api/spotify/token');
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Spotify is not connected.');
   spTok = await r.json(); return spTok.token;
 }
@@ -1897,10 +1910,10 @@ function onSpState(state){
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: t.artists.map(a => a.name).join(', '), artwork: img ? [{ src: img, sizes: '640x640', type: 'image/jpeg' }] : [] });
 }
 setInterval(() => { if (SRC !== 'local' && !SP.paused){ draw(); drawNow(); } }, 500);
-if (ownerPw){
+ownerSession().then(ok => { if (!ok) return;
   spToken().then(() => { OWNER_SP = true; laptopIsSpotify(); startSdk(); })
     .catch(e => { ownerSpErr = e.message; renderLaptop(); });
-}
+});
 
 /* =========================================================
    CLUB: songs on the monitor with a live visualizer (viz.js).

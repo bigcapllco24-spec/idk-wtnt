@@ -1,4 +1,4 @@
-import { bump, bumpStmt, dayOf, deviceOf, ensureSchema, handle, isBot, readJson, today, visitorId } from '../_lib.js';
+import { bump, bumpStmt, dayOf, deviceOf, ensureSchema, handle, isBot, overBudget, readJson, today, tooFast, visitorId } from '../_lib.js';
 
 const ROOMS = ['video', 'sound', 'art', 'photos', 'tees', 'misc', 'archive', 'about', 'spotify'];
 
@@ -26,6 +26,8 @@ export const onRequestPost = handle(async ({ request, env }) => {
   if (isBot(request)) return new Response(null, { status: 204 });
   await ensureSchema(env);
   const body = await readJson(request);
+  const visitor = await visitorId(request, env);
+  if (tooFast('t' + visitor, 40) || await overBudget(env)) return new Response(null, { status: 204 });
 
   if (body.type === 'room') {
     if (ROOMS.includes(body.room)) await bump(env, 'room', body.room);
@@ -34,7 +36,6 @@ export const onRequestPost = handle(async ({ request, env }) => {
   if (body.type !== 'pageview') return new Response(null, { status: 204 });
 
   const day = today();
-  const visitor = await visitorId(request, env);
   const ins = await env.DB.prepare('INSERT OR IGNORE INTO visits (day, visitor) VALUES (?, ?)').bind(day, visitor).run();
   const stmts = [bumpStmt(env, 'pageviews')];
   if (ins.meta.changes) {

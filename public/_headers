@@ -2,9 +2,16 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
 
+/api/*
+  X-Robots-Tag: noindex, nofollow
+
 /img/*
   Cache-Control: public, max-age=604800
 
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000

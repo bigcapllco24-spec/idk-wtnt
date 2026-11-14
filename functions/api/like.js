@@ -1,4 +1,4 @@
-import { bump, ensureSchema, handle, HttpError, json, readJson, visitorId } from '../_lib.js';
+import { bump, ensureSchema, handle, HttpError, json, overBudget, readJson, tooFast, visitorId } from '../_lib.js';
 
 // POST /api/like {id, liked: true|false}  -> one like per visitor per item
 export const onRequestPost = handle(async ({ request, env }) => {
@@ -8,6 +8,7 @@ export const onRequestPost = handle(async ({ request, env }) => {
   const exists = await env.DB.prepare('SELECT 1 FROM items WHERE id = ? AND published = 1').bind(id).first();
   if (!exists) throw new HttpError(404, 'That item no longer exists.');
   const visitor = await visitorId(request, env);
+  if (tooFast('l' + visitor, 20) || await overBudget(env)) throw new HttpError(429, 'Slow down a little.');
   if (liked === false) {
     const del = await env.DB.prepare('DELETE FROM likes WHERE item_id = ? AND visitor = ?').bind(id, visitor).run();
     if (del.meta.changes) await env.DB.prepare('UPDATE items SET likes = MAX(likes - 1, 0) WHERE id = ?').bind(id).run();

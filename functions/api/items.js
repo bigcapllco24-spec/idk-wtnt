@@ -8,7 +8,7 @@ export const onRequestGet = handle(async ({ request, env }) => {
   const url = new URL(request.url);
   const type = url.searchParams.get('type');
   const all = url.searchParams.get('all') === '1';
-  if (all) requireAdmin(request, env);
+  if (all) await requireAdmin(request, env);
   if (type && !TYPES.includes(type)) return json({ error: 'Unknown type.' }, 400);
 
   const where = [], args = [];
@@ -22,7 +22,7 @@ export const onRequestGet = handle(async ({ request, env }) => {
 // POST /api/items (admin) {type, title, artist?, description?, fileKey, coverKey?}
 // Called after the file is stored: creates the entry that shows on the site.
 export const onRequestPost = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   await ensureSchema(env);
   const b = await readJson(request);
   if (!TYPES.includes(b.type)) throw new HttpError(400, 'Unknown type.');

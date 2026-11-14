@@ -8,7 +8,7 @@ async function load(env, id) {
 
 // PATCH /api/items/:id  (admin) -> edit title, artist, description, or show/hide
 export const onRequestPatch = handle(async ({ request, env, params }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   await ensureSchema(env);
   await load(env, params.id);
   const body = await readJson(request);
@@ -23,7 +23,7 @@ export const onRequestPatch = handle(async ({ request, env, params }) => {
 
 // DELETE /api/items/:id  (admin) -> removes the files from storage and the row
 export const onRequestDelete = handle(async ({ request, env, params }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   await ensureSchema(env);
   const row = await load(env, params.id);
   const keys = [row.file_key, row.cover_key].filter(Boolean);

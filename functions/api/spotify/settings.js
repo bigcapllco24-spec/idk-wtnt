@@ -4,7 +4,7 @@ import { parseLink } from './_spotify.js';
 // POST /api/spotify/settings (admin) {mode:'auto'|'chosen', playlists:[ids], links:[urls]}
 // 'auto' shows every public playlist you made; 'chosen' shows only the ones you tick.
 export const onRequestPost = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   await ensureSchema(env);
   const b = await readJson(request);
   const mode = b.mode === 'chosen' ? 'chosen' : 'auto';

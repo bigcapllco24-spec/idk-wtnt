@@ -25,6 +25,15 @@ Music, art, tees and other things from my desk. A photo of the desk at night is 
 
 Visit `https://<project>.pages.dev/admin`, log in, upload.
 
+## Security
+
+- **Login:** the password is only sent to `/api/login`, which sets a sign-in cookie that page scripts can't read (12 hours, or 30 days with "remember"). The password is never stored in the browser. Changing `ADMIN_PASSWORD` signs every device out.
+- **Wrong passwords:** 8 from one address (or 40 from anywhere) in 15 minutes locks the login for 15 minutes.
+- **Visitor limits:** likes, views, visit counts and notes are limited per visitor per minute, and the whole site stops counting for the day after `DAILY_WRITE_BUDGET` writes (default 15000), so the free database quota can't be drained.
+- **Guestbook:** no links, a hidden field that catches bots, 5 notes a day per visitor and 60 a day in total.
+- **Files:** hidden items' files are only served to you. Uploaded web pages and SVGs are sandboxed. Uploads that never became an item are deleted after 7 days.
+- **Headers:** `public/_headers` blocks other sites from framing this one.
+
 ## Limits on the free plan
 
 Uploads are refused once stored files reach **9 GB** (set `STORAGE_LIMIT_GB` to change it, max 9.5), so storage never goes past R2's free 10 GB. The upload page shows a meter. Everything else on the free plan stops at its limit rather than billing.

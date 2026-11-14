@@ -4,7 +4,7 @@ import { checkKind, newKey } from './files/_keys.js';
 // PUT /api/files?type=photo&name=pic.jpg  (admin, raw file body, under ~90 MB)
 // Stores one file in R2 and returns its key. Bigger files use /api/files/multipart.
 export const onRequestPut = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   if (!env.MEDIA) throw new HttpError(500, 'File storage is not connected. Add an R2 binding named MEDIA in the Cloudflare dashboard.');
   const url = new URL(request.url);
   const type = url.searchParams.get('type');

@@ -17,16 +17,29 @@ a{color:#F5A443}
 <body>
 <main><h1 id="t">Connecting Spotify…</h1><p id="m">One moment.</p><a href="/admin/#spotify" id="back" hidden>Back to the dashboard</a></main>
 <script>
+// The password itself is never kept in the browser: logging in sets a sign-in cookie that scripts can't read,
+// and only a marker ('cookie') is stored. A password saved by an older version is swapped for the cookie once.
+async function ownerSession(){
+  let v = '', keep = false;
+  try { v = localStorage.getItem('idk-pw') || ''; keep = !!v; if (!v) v = sessionStorage.getItem('idk-pw') || ''; } catch {}
+  if (!v) return false;
+  if (v === 'cookie') return true;
+  let ok = false;
+  try { ok = (await fetch('/api/login', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify({ password: v, remember: keep }) })).ok; } catch { return false; }
+  try { localStorage.removeItem('idk-pw'); sessionStorage.removeItem('idk-pw'); if (ok) (keep ? localStorage : sessionStorage).setItem('idk-pw', 'cookie'); } catch {}
+  return ok;
+}
 (async () => {
   const q = new URLSearchParams(location.search), t = document.getElementById('t'), m = document.getElementById('m'), back = document.getElementById('back');
   const fail = (title, msg) => { t.textContent = title; m.textContent = msg; back.hidden = false; };
-  let pw = '', verifier = '', state = '';
-  try { pw = localStorage.getItem('idk-pw') || sessionStorage.getItem('idk-pw') || ''; verifier = sessionStorage.getItem('sp-verifier') || ''; state = sessionStorage.getItem('sp-state') || ''; } catch {}
+  let verifier = '', state = '';
+  const pw = await ownerSession();
+  try { verifier = sessionStorage.getItem('sp-verifier') || ''; state = sessionStorage.getItem('sp-state') || ''; } catch {}
   if (q.get('error')) return fail('Spotify wasn\'t connected', q.get('error') === 'access_denied' ? 'You cancelled on Spotify\'s page. Nothing was changed.' : 'Spotify said: ' + q.get('error'));
   if (!q.get('code') || !verifier || q.get('state') !== state) return fail('Spotify wasn\'t connected', 'The login link expired. Go back to the dashboard and click Connect Spotify again.');
   if (!pw) return fail('Log in first', 'Log into your dashboard on this device, then click Connect Spotify again.');
   try {
-    const res = await fetch('/api/spotify/connect', { method:'POST', headers:{ 'content-type':'application/json', authorization:'Bearer ' + pw },
+    const res = await fetch('/api/spotify/connect', { method:'POST', headers:{ 'content-type':'application/json' },
       body: JSON.stringify({ code: q.get('code'), verifier, redirectUri: location.origin + '/admin/spotify.html' }) });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) return fail('Spotify wasn\'t connected', d.error || 'Something went wrong. Try again.');

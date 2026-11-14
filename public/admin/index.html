@@ -220,12 +220,22 @@ const $ = (s) => document.querySelector(s);
 const CHUNK = 20 * 1024 * 1024;          // files over this go up in 20 MB pieces
 const ACCEPT = { track: 'audio/*', video: 'video/*', photo: 'image/*', art: 'image/*' };
 const LABEL = { track: 'Music', video: 'Video', photo: 'Photo', art: 'Art' };
-let pw = '';
-try { pw = localStorage.getItem('idk-pw') || sessionStorage.getItem('idk-pw') || ''; } catch {}
+// The password itself is never kept in the browser: logging in sets a sign-in cookie that scripts can't read,
+// and only a marker ('cookie') is stored. A password saved by an older version is swapped for the cookie once.
+async function ownerSession(){
+  let v = '', keep = false;
+  try { v = localStorage.getItem('idk-pw') || ''; keep = !!v; if (!v) v = sessionStorage.getItem('idk-pw') || ''; } catch {}
+  if (!v) return false;
+  if (v === 'cookie') return true;
+  let ok = false;
+  try { ok = (await fetch('/api/login', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify({ password: v, remember: keep }) })).ok; } catch { return false; }
+  try { localStorage.removeItem('idk-pw'); sessionStorage.removeItem('idk-pw'); if (ok) (keep ? localStorage : sessionStorage).setItem('idk-pw', 'cookie'); } catch {}
+  return ok;
+}
 let type = 'track', filter = '', items = [];
 
 async function api(path, opts = {}) {
-  const res = await fetch(path, { ...opts, headers: { authorization: 'Bearer ' + pw, ...(opts.headers || {}) } });
+  const res = await fetch(path, { ...opts, headers: { ...(opts.headers || {}) } });
   let data = {};
   try { data = await res.json(); } catch {}
   if (!res.ok) throw new Error(data.error || `The server answered ${res.status}.`);
@@ -236,7 +246,6 @@ async function api(path, opts = {}) {
 async function enter(){
   try {
     await api('/api/items?all=1');
-    try { sessionStorage.setItem('idk-pw', pw); if ($('#remember') && $('#remember').checked) localStorage.setItem('idk-pw', pw); } catch {}
     $('#login').classList.add('hide'); $('#app').classList.remove('hide');
     try { localStorage.setItem('idk-owner', '1'); } catch {}
     loadStats(); loadList(); loadNotes(); loadSpotify();
@@ -244,9 +253,22 @@ async function enter(){
     $('#loginMsg').textContent = e.message; $('#loginMsg').className = 'msg bad';
   }
 }
-$('#loginForm').addEventListener('submit', (e) => { e.preventDefault(); pw = $('#pw').value; enter(); });
-$('#logout').addEventListener('click', () => { try { sessionStorage.removeItem('idk-pw'); localStorage.removeItem('idk-pw'); } catch {} location.reload(); });
-if (pw) enter();
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const keep = !!($('#remember') && $('#remember').checked);
+  try {
+    await api('/api/login', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify({ password: $('#pw').value, remember: keep }) });
+    $('#pw').value = '';
+    try { (keep ? localStorage : sessionStorage).setItem('idk-pw', 'cookie'); } catch {}
+    enter();
+  } catch (err) { $('#loginMsg').textContent = err.message; $('#loginMsg').className = 'msg bad'; }
+});
+$('#logout').addEventListener('click', async () => {
+  try { await fetch('/api/login', { method:'DELETE' }); } catch {}
+  try { sessionStorage.removeItem('idk-pw'); localStorage.removeItem('idk-pw'); } catch {}
+  location.reload();
+});
+ownerSession().then(ok => { if (ok) enter(); });
 
 /* ---------- upload form ---------- */
 function setType(t){
@@ -280,7 +302,6 @@ function put(url, body, contentType, onProgress){
   return new Promise((resolve, reject) => {
     const x = new XMLHttpRequest();
     x.open('PUT', url);
-    x.setRequestHeader('authorization', 'Bearer ' + pw);
     x.setRequestHeader('content-type', contentType || 'application/octet-stream');
     x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded);
     x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch {} x.status < 300 ? resolve(d) : reject(new Error(d.error || `Upload failed (${x.status}).`)); };

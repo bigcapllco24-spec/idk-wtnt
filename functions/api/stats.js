@@ -1,11 +1,12 @@
-import { dayOf, ensureSchema, handle, json, requireAdmin, storageLimit, storageUsed } from '../_lib.js';
+import { dayOf, ensureSchema, handle, json, requireAdmin, storageLimit, storageUsed, sweepOrphans } from '../_lib.js';
 
 const dayStr = (d) => dayOf(d.getTime());
 
 // GET /api/stats?days=30 (admin) -> everything the dashboard shows
 export const onRequestGet = handle(async ({ request, env }) => {
-  requireAdmin(request, env);
+  await requireAdmin(request, env);
   await ensureSchema(env);
+  try { if (env.MEDIA) await sweepOrphans(env); } catch (e) { console.error(e); }
   const days = Math.min(365, Math.max(1, Number(new URL(request.url).searchParams.get('days')) || 30));
   const now = new Date();
   const start = new Date(now.getTime() - (days - 1) * 864e5);

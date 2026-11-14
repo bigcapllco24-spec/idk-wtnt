@@ -1,9 +1,19 @@
 // GET /media/<key> -> streams a file from R2 storage.
 // Supports byte ranges so audio and video can seek without downloading the whole file.
+import { isAdmin } from '../_lib.js';
+
 async function serve(request, env, params, headOnly) {
   if (!env.MEDIA) return new Response('Storage not connected', { status: 500 });
   const key = (params.path || []).join('/');
   if (!key) return new Response('Not found', { status: 404 });
+
+  // files of hidden items are only served to the signed-in owner
+  let hidden = false;
+  try {
+    const row = env.DB && await env.DB.prepare('SELECT MIN(published) AS p FROM items WHERE file_key = ? OR cover_key = ?').bind(key, key).first();
+    hidden = !!row && row.p === 0;
+  } catch {}
+  if (hidden && !(await isAdmin(request, env))) return new Response('Not found', { status: 404 });
 
   const obj = headOnly
     ? await env.MEDIA.head(key)
@@ -14,7 +24,11 @@ async function serve(request, env, params, headOnly) {
   obj.writeHttpMetadata(headers);
   headers.set('etag', obj.httpEtag);
   headers.set('accept-ranges', 'bytes');
-  headers.set('cache-control', 'public, max-age=31536000, immutable');
+  headers.set('cache-control', hidden ? 'private, no-store' : 'public, max-age=31536000, immutable');
+  headers.set('x-content-type-options', 'nosniff');
+  // anything that isn't plain media (an uploaded web page, an SVG) is boxed in: it can't touch the site or the login
+  const ct = headers.get('content-type') || '';
+  if (!/^(audio|video|model)\/|^image\/(?!svg)/.test(ct)) headers.set('content-security-policy', "sandbox allow-scripts; frame-ancestors 'self'");
 
   if (headOnly) { headers.set('content-length', String(obj.size)); return new Response(null, { headers }); }
   if (!('body' in obj) || !obj.body) return new Response(null, { status: 304, headers });
